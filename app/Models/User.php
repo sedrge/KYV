@@ -3,10 +3,12 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Models\Place;
+use App\Models\Installation\Config;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
@@ -49,4 +51,51 @@ class User extends Authenticatable
             'two_factor_confirmed_at' => 'datetime',
         ];
     }
+
+    public function place()
+    {
+        return $this->belongsTo(Place::class);
+    }
+
+    public function config()
+    {
+        return $this->hasOneThrough(Config::class, Place::class, 'id', 'place_id', 'place_id', 'id');
+    }
+
+    public function hasConfig(): bool
+    {
+        return $this->config()->exists();
+    }
+
+
+    public function isSuperAdmin(): bool
+    {
+        return true;
+    }
+
+    public function isAdmin(): bool
+    {
+        return true;
+    }
+
+    public function isInvestigator(): bool
+    {
+        return true;
+    }
+
+    public function isHost(): bool
+    {
+        return true;
+    }
+
+    public function isAgent(): bool
+    {
+        return true;
+    }
+
+    public function isVisitor(): bool
+    {
+        return true;
+    }
+
 }
