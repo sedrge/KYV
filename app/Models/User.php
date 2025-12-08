@@ -3,12 +3,11 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Models\Place;
 use App\Models\Installation\Config;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 
 class User extends Authenticatable
 {
@@ -24,6 +23,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'place_id',
     ];
 
     /**
@@ -67,7 +67,6 @@ class User extends Authenticatable
         return $this->config()->exists();
     }
 
-
     public function isSuperAdmin(): bool
     {
         return true;
@@ -97,5 +96,4 @@ class User extends Authenticatable
     {
         return true;
     }
-
 }

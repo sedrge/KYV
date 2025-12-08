@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\TypePlace;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class TypePlacePolicy
 {
@@ -13,7 +12,7 @@ class TypePlacePolicy
      */
     public function viewAny(User $user): bool
     {
-        return  $user->isSuperAdmin();
+        return $user->isSuperAdmin();
     }
 
     /**
@@ -21,7 +20,7 @@ class TypePlacePolicy
      */
     public function view(User $user, TypePlace $typePlace): bool
     {
-        return  true;
+        return true;
     }
 
     /**
@@ -29,7 +28,7 @@ class TypePlacePolicy
      */
     public function create(User $user): bool
     {
-        return  $user->isSuperAdmin();
+        return $user->isSuperAdmin();
     }
 
     /**
@@ -37,7 +36,7 @@ class TypePlacePolicy
      */
     public function update(User $user, TypePlace $typePlace): bool
     {
-        return  $user->isSuperAdmin();
+        return $user->isSuperAdmin();
     }
 
     /**
@@ -45,7 +44,7 @@ class TypePlacePolicy
      */
     public function delete(User $user, TypePlace $typePlace): bool
     {
-        return  $user->isSuperAdmin();
+        return $user->isSuperAdmin();
     }
 
     /**
@@ -53,7 +52,7 @@ class TypePlacePolicy
      */
     public function restore(User $user, TypePlace $typePlace): bool
     {
-        return  $user->isSuperAdmin();
+        return $user->isSuperAdmin();
     }
 
     /**
@@ -61,6 +60,6 @@ class TypePlacePolicy
      */
     public function forceDelete(User $user, TypePlace $typePlace): bool
     {
-        return  $user->isSuperAdmin();
+        return $user->isSuperAdmin();
     }
 }

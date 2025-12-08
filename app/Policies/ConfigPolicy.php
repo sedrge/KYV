@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Installation\Config;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class ConfigPolicy
 {
@@ -53,7 +52,7 @@ class ConfigPolicy
      */
     public function restore(User $user, Config $config): bool
     {
-        return  $user->isSuperAdmin();
+        return $user->isSuperAdmin();
     }
 
     /**
@@ -61,6 +60,6 @@ class ConfigPolicy
      */
     public function forceDelete(User $user, Config $config): bool
     {
-        return  $user->isSuperAdmin();
+        return $user->isSuperAdmin();
     }
 }

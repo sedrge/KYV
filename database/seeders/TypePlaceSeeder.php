@@ -30,7 +30,7 @@ class TypePlaceSeeder extends Seeder
             'Gendarmerie',
             'Station-service',
             'Musée',
- 
+
             // Transport
             'Gare',
             'Aéroport',

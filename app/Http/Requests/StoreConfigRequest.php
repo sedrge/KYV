@@ -6,23 +6,27 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreConfigRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+            'place_id' => ['required', 'exists:places,id', 'unique:configs,place_id'],
+            'content' => ['required', 'array'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'place_id.required' => 'Le lieu est obligatoire.',
+            'place_id.exists' => 'Le lieu sélectionné n\'existe pas.',
+            'place_id.unique' => 'Ce lieu a déjà une configuration.',
+            'content.required' => 'Le contenu de la configuration est obligatoire.',
+            'content.array' => 'Le contenu doit être un tableau.',
         ];
     }
 }

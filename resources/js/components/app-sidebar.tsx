@@ -13,26 +13,44 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { BookOpen, Building2Icon, BuildingIcon, ChartBarIcon, Folder, LayoutGrid, Users2Icon } from 'lucide-react';
 import AppLogo from './app-logo';
+import PlaceController from '@/actions/App/Http/Controllers/PlaceController';
+import TypePlaceController from '@/actions/App/Http/Controllers/TypePlaceController';
+import UserController from '@/actions/App/Http/Controllers/UserController';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: dashboard(),
+        icon: ChartBarIcon,
+    },
+    {
+        title: 'Places',
+        href: PlaceController.index(),
+        icon: BuildingIcon,
+    },
+    {
+        title: 'Types of Places',
+        href: TypePlaceController.index(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Users',
+        href: UserController.index(),
+        icon: Users2Icon,
     },
 ];
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
+        title: 'Africasys',
+        href: 'https://www.africasys.com',
         icon: Folder,
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
+        title: 'Know Your Visitors',
+        href: 'https://www.africasys.com',
         icon: BookOpen,
     },
 ];

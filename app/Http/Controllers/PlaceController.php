@@ -2,65 +2,99 @@
 
 namespace App\Http\Controllers;
 
+use Inertia\Inertia;
 use App\Models\Place;
+use Inertia\Response;
+use App\Models\TypePlace;
+use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\StorePlaceRequest;
 use App\Http\Requests\UpdatePlaceRequest;
 
 class PlaceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(): Response
     {
-        //
+        $places = Place::query()
+            ->with('typePlace')
+            ->withCount('users')
+            ->latest()
+            ->get();
+
+        return Inertia::render('Places/Index', [
+            'places' => $places,
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function create(): Response
     {
-        //
+        $typePlaces = TypePlace::query()
+            ->orderBy('name')
+            ->get();
+
+        return Inertia::render('Places/Create', [
+            'typePlaces' => $typePlaces,
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StorePlaceRequest $request)
+    public function store(StorePlaceRequest $request): RedirectResponse
     {
-        //
+        Place::create([...$request->validated(), 'is_active' => $request->has('is_active') && $request->input('is_active') === 'on' ? true : false]);
+
+        return redirect()->route('places.index')
+            ->with('success', 'Lieu créé avec succès.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Place $place)
+    public function show(Place $place): Response
     {
-        //
+        $place->load([
+            'typePlace',
+            'users' => function ($query) {
+                $query->latest()->limit(10);
+            },
+            'config',
+        ]);
+
+        return Inertia::render('Places/Show', [
+            'place' => $place,
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Place $place)
+    public function edit(Place $place): Response
     {
-        //
+        $typePlaces = TypePlace::query()
+            ->orderBy('name')
+            ->get();
+
+        return Inertia::render('Places/Edit', [
+            'place' => $place,
+            'typePlaces' => $typePlaces,
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdatePlaceRequest $request, Place $place)
+    public function update(UpdatePlaceRequest $request, Place $place): RedirectResponse
     {
-        //
+        $place->update([...$request->validated(), 'is_active' => $request->has('is_active') && $request->input('is_active') === 'on' ? true : false]);
+
+        return redirect()->route('places.index')
+            ->with('success', 'Lieu mis à jour avec succès.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Place $place)
+    public function destroy(Place $place): RedirectResponse
     {
-        //
+        if ($place->users()->exists()) {
+            return redirect()->route('places.index')
+                ->with('error', 'Impossible de supprimer ce lieu car il a des utilisateurs associés.');
+        }
+
+        if ($place->config()->exists()) {
+            return redirect()->route('places.index')
+                ->with('error', 'Impossible de supprimer ce lieu car il a une configuration associée.');
+        }
+
+        $place->delete();
+
+        return redirect()->route('places.index')
+            ->with('success', 'Lieu supprimé avec succès.');
     }
 }
