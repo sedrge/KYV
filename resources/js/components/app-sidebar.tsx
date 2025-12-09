@@ -13,17 +13,23 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Building2Icon, BuildingIcon, ChartBarIcon, Folder, LayoutGrid, Users2Icon } from 'lucide-react';
+import { BookOpen, Building2Icon, BuildingIcon, ChartBarIcon, Folder, LayoutGrid, SettingsIcon, Users2Icon } from 'lucide-react';
 import AppLogo from './app-logo';
 import PlaceController from '@/actions/App/Http/Controllers/PlaceController';
 import TypePlaceController from '@/actions/App/Http/Controllers/TypePlaceController';
 import UserController from '@/actions/App/Http/Controllers/UserController';
+import ConfigController from '@/actions/App/Http/Controllers/ConfigController';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: dashboard(),
         icon: ChartBarIcon,
+    },
+    {
+        title: 'Configurations',
+        href: ConfigController.index(),
+        icon: SettingsIcon,
     },
     {
         title: 'Places',
