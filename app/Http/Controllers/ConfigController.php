@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Inertia\Inertia;
-use Inertia\Response;
-use App\Models\Installation\Config;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\StoreConfigRequest;
 use App\Http\Requests\UpdateConfigRequest;
+use App\Models\Installation\Config;
+use App\Models\Place;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class ConfigController extends Controller
 {
@@ -25,7 +26,15 @@ class ConfigController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('Configs/Create');
+        $places = Place::query()
+            ->active()
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        return Inertia::render('Configs/Create', [
+            'places' => $places,
+        ]);
     }
 
     public function store(StoreConfigRequest $request): RedirectResponse

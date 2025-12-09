@@ -11,9 +11,10 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import InputError from '@/components/input-error';
+import { ImageUpload } from '@/components/image-upload';
 import AppLayout from '@/layouts/app-layout';
 import ConfigController, { index, store } from '@/actions/App/Http/Controllers/ConfigController';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type Place } from '@/types';
 import { Head, Link, Form } from '@inertiajs/react';
 import {
     ArrowLeft,
@@ -72,6 +73,7 @@ const configSections: Section[] = [
                 id: 'identity',
                 title: 'Identité',
                 fields: [
+                    { name: 'place_id', label: 'Lieu', type: 'select', options: [] },
                     { name: 'organization_name', label: 'Nom de l\'organisation', type: 'text' },
                     { name: 'organization_short_name', label: 'Nom court', type: 'text' },
                     { name: 'slogan', label: 'Slogan', type: 'text' },
@@ -459,49 +461,15 @@ const configSections: Section[] = [
 ];
 
 function SettingField({ field, errors }: { field: Field; errors: Record<string, string> }) {
-    const [preview, setPreview] = useState<string | null>(null);
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
     if (field.type === 'file') {
         return (
-            <div className="flex flex-col gap-2 py-3 border-b border-border/40 last:border-0">
-                <Label htmlFor={field.name} className="text-sm font-normal">
-                    {field.label}
-                </Label>
-                {field.description && (
-                    <p className="text-xs text-muted-foreground">{field.description}</p>
-                )}
-                <div className="flex items-start gap-4">
-                    <Input
-                        id={field.name}
-                        name={field.name}
-                        type="file"
-                        accept={field.accept}
-                        onChange={handleFileChange}
-                        className="flex-1"
-                    />
-                    {preview && (
-                        <div className="w-32 h-32 border rounded-lg overflow-hidden bg-muted flex items-center justify-center">
-                            <img
-                                src={preview}
-                                alt="Aperçu"
-                                className="max-w-full max-h-full object-contain"
-                            />
-                        </div>
-                    )}
-                </div>
-                {errors[field.name] && <InputError message={errors[field.name]} />}
-            </div>
+            <ImageUpload
+                name={field.name}
+                label={field.label}
+                description={field.description}
+                accept={field.accept}
+                error={errors[field.name]}
+            />
         );
     }
 
@@ -597,11 +565,33 @@ function SettingField({ field, errors }: { field: Field; errors: Record<string, 
     );
 }
 
-export default function Create() {
-    const [activeSection, setActiveSection] = useState<string>(configSections[0].id);
-    const [activeSubsection, setActiveSubsection] = useState<string>(configSections[0].subsections[0].id);
+export default function Create({ places }: { places: Place[] }) {
+    const placeOptions = places.map((place) => ({ value: place.id, label: place.name }));
 
-    const currentSection = configSections.find((s) => s.id === activeSection);
+    const sections = configSections.map((section) => {
+        if (section.id === 'organization') {
+            return {
+                ...section,
+                subsections: section.subsections.map((subsection) => {
+                    if (subsection.id === 'identity') {
+                        return {
+                            ...subsection,
+                            fields: subsection.fields.map((field) =>
+                                field.name === 'place_id' ? { ...field, options: placeOptions } : field
+                            ),
+                        };
+                    }
+                    return subsection;
+                }),
+            };
+        }
+        return section;
+    });
+
+    const [activeSection, setActiveSection] = useState<string>(sections[0].id);
+    const [activeSubsection, setActiveSubsection] = useState<string>(sections[0].subsections[0].id);
+
+    const currentSection = sections.find((s) => s.id === activeSection);
     const currentSubsection = currentSection?.subsections.find((ss) => ss.id === activeSubsection);
 
     return (
@@ -622,89 +612,91 @@ export default function Create() {
 
                 <Form {...store.form()}>
                     {({ errors }) => (
-                        <div className="flex flex-1 gap-0 border rounded-lg overflow-hidden bg-background min-h-[600px]">
-                            <div className="w-64 border-r bg-muted/30 overflow-y-auto">
-                                <div className="p-4">
-                                    <Input
-                                        type="search"
-                                        placeholder="Rechercher un paramètre..."
-                                        className="h-8 text-sm"
-                                    />
+                        <>
+                            <div className="flex flex-1 gap-0 border rounded-lg overflow-hidden bg-background min-h-[600px]">
+                                <div className="w-64 border-r bg-muted/30 overflow-y-auto">
+                                    <div className="p-4">
+                                        <Input
+                                            type="search"
+                                            placeholder="Rechercher un paramètre..."
+                                            className="h-8 text-sm"
+                                        />
+                                    </div>
+                                    <nav className="pb-4">
+                                        {sections.map((section) => {
+                                            const Icon = section.icon;
+                                            return (
+                                                <div key={section.id}>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setActiveSection(section.id);
+                                                            setActiveSubsection(section.subsections[0].id);
+                                                        }}
+                                                        className={`w-full text-left px-4 py-1.5 text-sm font-medium hover:bg-accent/50 transition-colors flex items-center gap-2 ${
+                                                            activeSection === section.id ? 'text-foreground' : 'text-muted-foreground'
+                                                        }`}
+                                                    >
+                                                        <Icon className="h-4 w-4 flex-shrink-0" />
+                                                        <span>{section.title}</span>
+                                                    </button>
+                                                    {activeSection === section.id && (
+                                                        <div className="ml-4 border-l border-border/40">
+                                                            {section.subsections.map((subsection) => (
+                                                                <button
+                                                                    key={subsection.id}
+                                                                    type="button"
+                                                                    onClick={() => setActiveSubsection(subsection.id)}
+                                                                    className={`w-full text-left px-4 py-1 text-xs hover:bg-accent/50 transition-colors ${
+                                                                        activeSubsection === subsection.id
+                                                                            ? 'text-foreground font-medium bg-accent/30'
+                                                                            : 'text-muted-foreground'
+                                                                    }`}
+                                                                >
+                                                                    {subsection.title}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </nav>
                                 </div>
-                                <nav className="pb-4">
-                                    {configSections.map((section) => {
-                                        const Icon = section.icon;
-                                        return (
-                                            <div key={section.id}>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setActiveSection(section.id);
-                                                        setActiveSubsection(section.subsections[0].id);
-                                                    }}
-                                                    className={`w-full text-left px-4 py-1.5 text-sm font-medium hover:bg-accent/50 transition-colors flex items-center gap-2 ${
-                                                        activeSection === section.id ? 'text-foreground' : 'text-muted-foreground'
-                                                    }`}
-                                                >
-                                                    <Icon className="h-4 w-4 flex-shrink-0" />
-                                                    <span>{section.title}</span>
-                                                </button>
-                                                {activeSection === section.id && (
-                                                    <div className="ml-4 border-l border-border/40">
-                                                        {section.subsections.map((subsection) => (
-                                                            <button
-                                                                key={subsection.id}
-                                                                type="button"
-                                                                onClick={() => setActiveSubsection(subsection.id)}
-                                                                className={`w-full text-left px-4 py-1 text-xs hover:bg-accent/50 transition-colors ${
-                                                                    activeSubsection === subsection.id
-                                                                        ? 'text-foreground font-medium bg-accent/30'
-                                                                        : 'text-muted-foreground'
-                                                                }`}
-                                                            >
-                                                                {subsection.title}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                )}
+
+                                <div className="flex-1 overflow-y-auto">
+                                    <div className="p-6 max-w-4xl">
+                                        <div className="mb-6">
+                                            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                                                <span>{currentSection?.title}</span>
+                                                <ChevronRight className="h-3 w-3" />
+                                                <span>{currentSubsection?.title}</span>
                                             </div>
-                                        );
-                                    })}
-                                </nav>
-                            </div>
-
-                            <div className="flex-1 overflow-y-auto">
-                                <div className="p-6 max-w-4xl">
-                                    <div className="mb-6">
-                                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                                            <span>{currentSection?.title}</span>
-                                            <ChevronRight className="h-3 w-3" />
-                                            <span>{currentSubsection?.title}</span>
+                                            <h2 className="text-lg font-semibold">{currentSubsection?.title}</h2>
                                         </div>
-                                        <h2 className="text-lg font-semibold">{currentSubsection?.title}</h2>
-                                    </div>
 
-                                    <div className="space-y-0">
-                                        {currentSubsection?.fields.map((field) => (
-                                            <SettingField key={field.name} field={field} errors={errors} />
-                                        ))}
+                                        <div className="space-y-0">
+                                            {currentSubsection?.fields.map((field) => (
+                                                <SettingField key={field.name} field={field} errors={errors} />
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+
+                            <div className="flex gap-2 border-t pt-4">
+                                <Button type="submit">
+                                    Créer la configuration
+                                </Button>
+                                <Link href={index().url}>
+                                    <Button type="button" variant="outline">
+                                        Annuler
+                                    </Button>
+                                </Link>
+                            </div>
+                        </>
                     )}
                 </Form>
-
-                <div className="flex gap-2 border-t pt-4">
-                    <Button type="submit" form={store.form().action}>
-                        Créer la configuration
-                    </Button>
-                    <Link href={index().url}>
-                        <Button type="button" variant="outline">
-                            Annuler
-                        </Button>
-                    </Link>
-                </div>
             </div>
         </AppLayout>
     );
