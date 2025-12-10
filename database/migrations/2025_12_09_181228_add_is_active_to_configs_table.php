@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('configs', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->json('content')->nullable();
-            $table->foreignUuid('place_id')->nullable()->constrained('places')->cascadeOnDelete();
-            $table->softDeletes();
-            $table->timestamps();
+        Schema::table('configs', function (Blueprint $table) {
+            $table->boolean('is_active')->default(false);
         });
     }
 
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('configs');
+        Schema::table('configs', function (Blueprint $table) {
+            $table->dropColumn('is_active');
+        });
     }
 };

@@ -68,8 +68,15 @@ class ConfigController extends Controller
 
     public function edit(Config $config): Response
     {
+        $places = Place::query()
+            ->active()
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
         return Inertia::render('Configs/Edit', [
             'config' => $config,
+            'places' => $places,
         ]);
     }
 

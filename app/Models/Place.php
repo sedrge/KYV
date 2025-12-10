@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Installation\Config;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Place extends Model
 {
-    use HasUuids, SoftDeletes;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -52,6 +53,19 @@ class Place extends Model
     public function config(): HasOne
     {
         return $this->hasOne(Config::class);
+    }
+
+    public function getConfig(): Config
+    {
+        $consfig = $this->config()->where('is_active', true)->latest()->first();
+        if (! $consfig) {
+            $consfig = Config::query()->where('place_id', null)->where('is_active', true)->latest()->first();
+        }
+        if (! $consfig) {
+            $consfig = Config::query()->where('place_id', null)->latest()->first();
+        }
+
+        return $consfig;
     }
 
     public function scopeActive($query)

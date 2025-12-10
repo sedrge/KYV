@@ -15,12 +15,14 @@ class Config extends Model
     protected $fillable = [
         'content',
         'place_id',
+        'is_active',
     ];
 
     protected function casts(): array
     {
         return [
             'content' => 'array',
+            'is_active' => 'boolean',
         ];
     }
 

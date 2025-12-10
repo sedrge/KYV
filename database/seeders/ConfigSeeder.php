@@ -11,6 +11,11 @@ class ConfigSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        $defaultConfig = config('default-theme');
+
+        \App\Models\Installation\Config::create([
+            'content' => $defaultConfig,
+            'place_id' => null,
+        ]);
     }
 }

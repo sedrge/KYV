@@ -38,6 +38,13 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
+        $themeConfig = null;
+
+        if ($request->user()?->place) {
+            $config = $request->user()->place->getConfig();
+            $themeConfig = $config?->content;
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -46,6 +53,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'themeConfig' => $themeConfig,
         ];
     }
 }
