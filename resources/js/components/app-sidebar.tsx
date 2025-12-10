@@ -13,7 +13,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Building2Icon, BuildingIcon, ChartBarIcon, Folder, LayoutGrid, LockIcon, SettingsIcon, ShieldIcon, Users2Icon, FileText } from 'lucide-react';
+import { BuildingIcon, ChartBarIcon, LayoutGrid, LockIcon, SettingsIcon, ShieldIcon, Users2Icon, FileText } from 'lucide-react';
 import AppLogo from './app-logo';
 import PlaceController from '@/actions/App/Http/Controllers/PlaceController';
 import TypePlaceController from '@/actions/App/Http/Controllers/TypePlaceController';
@@ -66,19 +66,6 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Africasys',
-        href: 'https://www.africasys.com',
-        icon: Folder,
-    },
-    {
-        title: 'Know Your Visitors',
-        href: 'https://www.africasys.com',
-        icon: BookOpen,
-    },
-];
-
 export function AppSidebar() {
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -99,7 +86,7 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
+                <NavFooter className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

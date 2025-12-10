@@ -16,6 +16,7 @@ class PlaceObserver
         \App\Models\Installation\Config::create([
             'content' => $defaultConfig,
             'place_id' => $place->id,
+            'is_active' => true,
         ]);
     }
 

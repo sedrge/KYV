@@ -16,6 +16,7 @@ class ConfigSeeder extends Seeder
         \App\Models\Installation\Config::create([
             'content' => $defaultConfig,
             'place_id' => null,
+            'is_active' => true,
         ]);
     }
 }

@@ -6,7 +6,12 @@
       "Bash(ls:*)",
       "Bash(php artisan make:controller:*)",
       "Bash(npm run build:*)",
-      "Bash(php artisan vendor:publish:*)"
+      "Bash(php artisan vendor:publish:*)",
+      "Bash(php artisan tinker:*)",
+      "Bash(php artisan test:*)",
+      "Bash(dir:*)",
+      "Bash(php artisan:*)",
+      "Bash(vendor/bin/pint:*)"
     ],
     "deny": [],
     "ask": []

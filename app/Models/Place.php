@@ -55,7 +55,7 @@ class Place extends Model
         return $this->hasOne(Config::class);
     }
 
-    public function getConfig(): Config
+    public function getConfig(): ?Config
     {
         $consfig = $this->config()->where('is_active', true)->latest()->first();
         if (! $consfig) {

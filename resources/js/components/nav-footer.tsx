@@ -7,16 +7,39 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { resolveUrl } from '@/lib/utils';
-import { type NavItem } from '@/types';
+import { type NavItem, type SharedData } from '@/types';
 import { type ComponentPropsWithoutRef } from 'react';
+import { usePage } from '@inertiajs/react';
+import { BookOpen, Folder } from 'lucide-react';
+
+const defaultFooterItems: NavItem[] = [
+    {
+        title: 'Africasys',
+        href: 'https://www.africasys.com',
+        icon: Folder,
+    },
+    {
+        title: 'Know Your Visitors',
+        href: 'https://www.africasys.com',
+        icon: BookOpen,
+    },
+];
 
 export function NavFooter({
     items,
     className,
     ...props
 }: ComponentPropsWithoutRef<typeof SidebarGroup> & {
-    items: NavItem[];
+    items?: NavItem[];
 }) {
+    const { themeConfig } = usePage<SharedData>().props;
+
+    const footerItems = items || themeConfig?.footer_links?.map((link) => ({
+        title: link.title,
+        href: link.href,
+        icon: null,
+    })) || defaultFooterItems;
+
     return (
         <SidebarGroup
             {...props}
@@ -24,7 +47,7 @@ export function NavFooter({
         >
             <SidebarGroupContent>
                 <SidebarMenu>
-                    {items.map((item) => (
+                    {footerItems.map((item) => (
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton
                                 asChild

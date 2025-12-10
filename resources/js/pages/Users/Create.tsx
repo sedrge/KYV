@@ -90,8 +90,6 @@ export default function Create({ places, roles }: Props) {
                                                 <div key={role.id} className="flex items-center space-x-2">
                                                     <Checkbox
                                                         id={`role-${role.id}`}
-                                                        name="roles[]"
-                                                        value={role.name}
                                                         checked={selectedRoles.includes(role.name)}
                                                         onCheckedChange={() => handleRoleToggle(role.name)}
                                                     />
@@ -101,6 +99,9 @@ export default function Create({ places, roles }: Props) {
                                                 </div>
                                             ))}
                                         </div>
+                                        {selectedRoles.map((roleName) => (
+                                            <input key={roleName} type="hidden" name="roles[]" value={roleName} />
+                                        ))}
                                         <InputError message={errors.roles} />
                                     </div>
                                     <div className="col-span-2 flex gap-2">

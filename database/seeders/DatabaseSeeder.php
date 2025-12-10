@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
         // Seed other data
         $this->call([
             TypePlaceSeeder::class,
+            ConfigSeeder::class,
         ]);
 
         // Create test user only in non-production environments

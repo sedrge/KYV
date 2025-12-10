@@ -44,7 +44,7 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const rightNavItems: NavItem[] = [
+const defaultRightNavItems: NavItem[] = [
     {
         title: 'Repository',
         href: 'https://github.com/laravel/react-starter-kit',
@@ -66,8 +66,14 @@ interface AppHeaderProps {
 
 export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const page = usePage<SharedData>();
-    const { auth } = page.props;
+    const { auth, themeConfig } = page.props;
     const getInitials = useInitials();
+
+    const rightNavItems: NavItem[] = themeConfig?.footer_links?.map((link) => ({
+        title: link.title,
+        href: link.href,
+        icon: null,
+    })) || defaultRightNavItems;
     return (
         <>
             <div className="border-b border-sidebar-border/80">
