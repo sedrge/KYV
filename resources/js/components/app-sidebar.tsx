@@ -13,7 +13,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Building2Icon, BuildingIcon, ChartBarIcon, Folder, LayoutGrid, LockIcon, SettingsIcon, ShieldIcon, Users2Icon } from 'lucide-react';
+import { BookOpen, Building2Icon, BuildingIcon, ChartBarIcon, Folder, LayoutGrid, LockIcon, SettingsIcon, ShieldIcon, Users2Icon, FileText } from 'lucide-react';
 import AppLogo from './app-logo';
 import PlaceController from '@/actions/App/Http/Controllers/PlaceController';
 import TypePlaceController from '@/actions/App/Http/Controllers/TypePlaceController';
@@ -21,6 +21,7 @@ import UserController from '@/actions/App/Http/Controllers/UserController';
 import ConfigController from '@/actions/App/Http/Controllers/ConfigController';
 import RoleController from '@/actions/App/Http/Controllers/RoleController';
 import PermissionController from '@/actions/App/Http/Controllers/PermissionController';
+import AuditController from '@/actions/App/Http/Controllers/AuditController';
 
 const mainNavItems: NavItem[] = [
     {
@@ -57,6 +58,11 @@ const mainNavItems: NavItem[] = [
         title: 'Permissions',
         href: PermissionController.index(),
         icon: LockIcon,
+    },
+    {
+        title: 'Audits',
+        href: AuditController.index(),
+        icon: FileText,
     },
 ];
 

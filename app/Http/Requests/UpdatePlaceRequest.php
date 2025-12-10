@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class UpdatePlaceRequest extends FormRequest
 {
@@ -26,7 +26,7 @@ class UpdatePlaceRequest extends FormRequest
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'website' => ['nullable', 'url', 'max:500'],
             'rating' => ['nullable', 'numeric', 'between:0,5'],
-            'is_active' => ['nullable','string'],
+            'is_active' => ['nullable', 'string'],
         ];
     }
 

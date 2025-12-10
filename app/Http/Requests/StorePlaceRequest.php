@@ -3,8 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Models\Place;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class StorePlaceRequest extends FormRequest
 {
@@ -27,8 +27,8 @@ class StorePlaceRequest extends FormRequest
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'website' => ['nullable', 'url', 'max:500'],
             'rating' => ['nullable', 'numeric', 'between:0,5'],
-            'is_active' => ['nullable','string'],
-        ];   
+            'is_active' => ['nullable', 'string'],
+        ];
     }
 
     public function messages(): array
