@@ -13,12 +13,14 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Building2Icon, BuildingIcon, ChartBarIcon, Folder, LayoutGrid, SettingsIcon, Users2Icon } from 'lucide-react';
+import { BookOpen, Building2Icon, BuildingIcon, ChartBarIcon, Folder, LayoutGrid, LockIcon, SettingsIcon, ShieldIcon, Users2Icon } from 'lucide-react';
 import AppLogo from './app-logo';
 import PlaceController from '@/actions/App/Http/Controllers/PlaceController';
 import TypePlaceController from '@/actions/App/Http/Controllers/TypePlaceController';
 import UserController from '@/actions/App/Http/Controllers/UserController';
 import ConfigController from '@/actions/App/Http/Controllers/ConfigController';
+import RoleController from '@/actions/App/Http/Controllers/RoleController';
+import PermissionController from '@/actions/App/Http/Controllers/PermissionController';
 
 const mainNavItems: NavItem[] = [
     {
@@ -45,6 +47,16 @@ const mainNavItems: NavItem[] = [
         title: 'Users',
         href: UserController.index(),
         icon: Users2Icon,
+    },
+    {
+        title: 'Roles',
+        href: RoleController.index(),
+        icon: ShieldIcon,
+    },
+    {
+        title: 'Permissions',
+        href: PermissionController.index(),
+        icon: LockIcon,
     },
 ];
 

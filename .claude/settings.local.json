@@ -5,7 +5,8 @@
       "Bash(php artisan wayfinder:generate:*)",
       "Bash(ls:*)",
       "Bash(php artisan make:controller:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(php artisan vendor:publish:*)"
     ],
     "deny": [],
     "ask": []

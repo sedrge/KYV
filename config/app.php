@@ -123,4 +123,22 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | System Admin Configuration
+    |--------------------------------------------------------------------------
+    |
+    | These configuration options define the system administrator account that
+    | will be created during the initial application setup. This account has
+    | full access to all features and should be used to bootstrap the system.
+    |
+    */
+
+    'system_admin' => [
+        'email' => env('SYSTEM_ADMIN_EMAIL'),
+        'password' => env('SYSTEM_ADMIN_PASSWORD'),
+        'name' => env('SYSTEM_ADMIN_NAME', 'System Admin'),
+        'active' => filter_var(env('SYSTEM_ADMIN_ACTIVE', true), FILTER_VALIDATE_BOOLEAN),
+    ],
+
 ];

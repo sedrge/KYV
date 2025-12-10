@@ -18,6 +18,8 @@ class StoreUserRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'place_id' => ['nullable', 'exists:places,id'],
+            'roles' => ['nullable', 'array'],
+            'roles.*' => ['exists:roles,name'],
         ];
     }
 
@@ -32,6 +34,8 @@ class StoreUserRequest extends FormRequest
             'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
             'password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
             'place_id.exists' => 'Le lieu sélectionné n\'existe pas.',
+            'roles.array' => 'Les rôles doivent être un tableau.',
+            'roles.*.exists' => 'Un des rôles sélectionnés n\'existe pas.',
         ];
     }
 }

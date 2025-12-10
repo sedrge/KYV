@@ -9,16 +9,29 @@ import { index, store } from '@/actions/App/Http/Controllers/UserController';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, Form } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useState } from 'react';
 
 interface Place { id: string; name: string; }
-interface Props { places: Place[]; }
+interface Role { id: number; name: string; }
+interface Props { places: Place[]; roles: Role[]; }
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Utilisateurs', href: index().url },
     { title: 'Nouvel utilisateur' },
 ];
 
-export default function Create({ places }: Props) {
+export default function Create({ places, roles }: Props) {
+    const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+
+    const handleRoleToggle = (roleName: string) => {
+        setSelectedRoles((prev) =>
+            prev.includes(roleName)
+                ? prev.filter((r) => r !== roleName)
+                : [...prev, roleName]
+        );
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Nouvel utilisateur" />
@@ -69,6 +82,26 @@ export default function Create({ places }: Props) {
                                             </SelectContent>
                                         </Select>
                                         <InputError message={errors.place_id} />
+                                    </div>
+                                    <div className="col-span-2 space-y-2">
+                                        <Label>Rôles (optionnel)</Label>
+                                        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 rounded-md border p-4">
+                                            {roles.map((role) => (
+                                                <div key={role.id} className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id={`role-${role.id}`}
+                                                        name="roles[]"
+                                                        value={role.name}
+                                                        checked={selectedRoles.includes(role.name)}
+                                                        onCheckedChange={() => handleRoleToggle(role.name)}
+                                                    />
+                                                    <Label htmlFor={`role-${role.id}`} className="text-sm font-normal cursor-pointer">
+                                                        {role.name}
+                                                    </Label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <InputError message={errors.roles} />
                                     </div>
                                     <div className="col-span-2 flex gap-2">
                                         <Button type="submit" disabled={processing}>{processing ? 'Création...' : 'Créer'}</Button>

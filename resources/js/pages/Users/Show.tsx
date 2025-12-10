@@ -6,7 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import { index, edit } from '@/actions/App/Http/Controllers/UserController';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, Pencil, Mail, MapPin, Calendar, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Pencil, Mail, MapPin, Calendar, CheckCircle, Shield, Lock } from 'lucide-react';
 
 interface Place { id: string; name: string; }
 interface User {
@@ -14,9 +14,10 @@ interface User {
     name: string;
     email: string;
     place?: Place;
+    roles: string[];
+    permissions: string[];
     email_verified_at?: string;
     created_at: string;
-    updated_at: string;
 }
 interface Props { user: User; }
 
@@ -88,13 +89,6 @@ export default function Show({ user }: Props) {
                                     <p className="font-medium">{new Date(user.created_at).toLocaleDateString('fr-FR')}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4 text-muted-foreground" />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Modifié le</p>
-                                    <p className="font-medium">{new Date(user.updated_at).toLocaleDateString('fr-FR')}</p>
-                                </div>
-                            </div>
                             {user.email_verified_at && (
                                 <div className="flex items-center gap-2">
                                     <CheckCircle className="h-4 w-4 text-green-600" />
@@ -103,6 +97,55 @@ export default function Show({ user }: Props) {
                                         <p className="font-medium">{new Date(user.email_verified_at).toLocaleDateString('fr-FR')}</p>
                                     </div>
                                 </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center gap-2">
+                            <Shield className="h-5 w-5 text-primary" />
+                            <CardTitle>Rôles</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {user.roles && user.roles.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {user.roles.map((role) => (
+                                        <Badge key={role} variant="default" className="text-sm">
+                                            {role}
+                                        </Badge>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">Aucun rôle assigné</p>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader className="flex flex-row items-center gap-2">
+                            <Lock className="h-5 w-5 text-primary" />
+                            <CardTitle>Permissions</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {user.permissions && user.permissions.length > 0 ? (
+                                <div className="space-y-2">
+                                    <p className="text-sm text-muted-foreground">
+                                        {user.permissions.length} permission{user.permissions.length > 1 ? 's' : ''} au total
+                                    </p>
+                                    <div className="max-h-[200px] overflow-y-auto">
+                                        <div className="flex flex-wrap gap-1">
+                                            {user.permissions.map((permission) => (
+                                                <Badge key={permission} variant="secondary" className="text-xs">
+                                                    {permission}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">Aucune permission</p>
                             )}
                         </CardContent>
                     </Card>

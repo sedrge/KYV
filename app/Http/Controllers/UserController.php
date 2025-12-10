@@ -10,15 +10,24 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
     public function index(): Response
     {
         $users = User::query()
-            ->with('place')
+            ->with(['place', 'roles'])
             ->latest()
-            ->get();
+            ->get()
+            ->map(fn ($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'place' => $user->place,
+                'roles' => $user->roles->pluck('name'),
+                'created_at' => $user->created_at,
+            ]);
 
         return Inertia::render('Users/Index', [
             'users' => $users,
@@ -31,8 +40,17 @@ class UserController extends Controller
             ->orderBy('name')
             ->get();
 
+        $roles = Role::query()
+            ->orderBy('name')
+            ->get()
+            ->map(fn ($role) => [
+                'id' => $role->id,
+                'name' => $role->name,
+            ]);
+
         return Inertia::render('Users/Create', [
             'places' => $places,
+            'roles' => $roles,
         ]);
     }
 
@@ -41,7 +59,14 @@ class UserController extends Controller
         $validated = $request->validated();
         $validated['password'] = Hash::make($validated['password']);
 
-        User::create($validated);
+        $roles = $validated['roles'] ?? [];
+        unset($validated['roles']);
+
+        $user = User::create($validated);
+
+        if (! empty($roles)) {
+            $user->assignRole($roles);
+        }
 
         return redirect()->route('users.index')
             ->with('success', 'Utilisateur créé avec succès.');
@@ -49,10 +74,19 @@ class UserController extends Controller
 
     public function show(User $user): Response
     {
-        $user->load(['place', 'config']);
+        $user->load(['place', 'config', 'roles', 'permissions']);
 
         return Inertia::render('Users/Show', [
-            'user' => $user,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'place' => $user->place,
+                'config' => $user->config,
+                'roles' => $user->roles->pluck('name'),
+                'permissions' => $user->getAllPermissions()->pluck('name'),
+                'created_at' => $user->created_at,
+            ],
         ]);
     }
 
@@ -62,9 +96,24 @@ class UserController extends Controller
             ->orderBy('name')
             ->get();
 
+        $roles = Role::query()
+            ->orderBy('name')
+            ->get()
+            ->map(fn ($role) => [
+                'id' => $role->id,
+                'name' => $role->name,
+            ]);
+
         return Inertia::render('Users/Edit', [
-            'user' => $user,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'place_id' => $user->place_id,
+                'roles' => $user->roles->pluck('name'),
+            ],
             'places' => $places,
+            'roles' => $roles,
         ]);
     }
 
@@ -78,7 +127,11 @@ class UserController extends Controller
             $validated['password'] = Hash::make($validated['password']);
         }
 
+        $roles = $validated['roles'] ?? [];
+        unset($validated['roles']);
+
         $user->update($validated);
+        $user->syncRoles($roles);
 
         return redirect()->route('users.index')
             ->with('success', 'Utilisateur mis à jour avec succès.');

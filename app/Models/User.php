@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, HasRoles, Notifiable, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -69,31 +70,36 @@ class User extends Authenticatable
 
     public function isSuperAdmin(): bool
     {
-        return true;
+        return $this->hasRole('Super Admin');
     }
 
     public function isAdmin(): bool
     {
-        return true;
+        return $this->hasRole('Admin');
     }
 
     public function isInvestigator(): bool
     {
-        return true;
+        return $this->hasRole('Investigator');
     }
 
     public function isHost(): bool
     {
-        return true;
+        return $this->hasRole('Host');
     }
 
     public function isAgent(): bool
     {
-        return true;
+        return $this->hasRole('Agent');
     }
 
     public function isVisitor(): bool
     {
-        return true;
+        return $this->hasRole('Visitor');
+    }
+
+    public function isAuthority(): bool
+    {
+        return $this->hasRole('Autorités');
     }
 }

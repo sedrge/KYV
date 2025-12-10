@@ -6,10 +6,10 @@ import AppLayout from '@/layouts/app-layout';
 import { index, create, show, edit, destroy } from '@/actions/App/Http/Controllers/UserController';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { PlusCircle, Eye, Pencil, Trash2, MapPin, Mail } from 'lucide-react';
+import { PlusCircle, Eye, Pencil, Trash2, MapPin, Mail, Shield } from 'lucide-react';
 
 interface Place { id: string; name: string; }
-interface User { id: string; name: string; email: string; place?: Place; email_verified_at?: string; created_at: string; }
+interface User { id: string; name: string; email: string; place?: Place; email_verified_at?: string; roles: string[]; created_at: string; }
 interface Props { users: User[]; }
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Utilisateurs', href: index().url }];
@@ -64,6 +64,18 @@ export default function Index({ users }: Props) {
                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                         <MapPin className="h-4 w-4" />
                                         {user.place.name}
+                                    </div>
+                                )}
+                                {user.roles && user.roles.length > 0 && (
+                                    <div className="flex items-start gap-2">
+                                        <Shield className="h-4 w-4 text-muted-foreground mt-0.5" />
+                                        <div className="flex flex-wrap gap-1">
+                                            {user.roles.map((role) => (
+                                                <Badge key={role} variant="secondary" className="text-xs">
+                                                    {role}
+                                                </Badge>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
                                 <div className="flex gap-2">

@@ -13,19 +13,31 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Seed roles and permissions first (required for system admin)
+        $this->call([
+            RolePermissionSeeder::class,
+        ]);
 
-        User::firstOrCreate(
-            ['email' => 'test@example.com'],
-            [
-                'name' => 'Test User',
-                'password' => 'password',
-                'email_verified_at' => now(),
-            ]
-        );
+        // Create system admin (should be created first)
+        $this->call([
+            SystemAdminSeeder::class,
+        ]);
 
+        // Seed other data
         $this->call([
             TypePlaceSeeder::class,
         ]);
+
+        // Create test user only in non-production environments
+        if (! app()->environment('production')) {
+            User::firstOrCreate(
+                ['email' => 'test@example.com'],
+                [
+                    'name' => 'Test User',
+                    'password' => 'password',
+                    'email_verified_at' => now(),
+                ]
+            );
+        }
     }
 }
