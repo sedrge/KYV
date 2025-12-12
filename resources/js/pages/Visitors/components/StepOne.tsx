@@ -1,11 +1,17 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
-import { useState, useRef } from 'react';
-import { createWorker } from 'tesseract.js';
 import { Camera, Upload } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { createWorker } from 'tesseract.js';
 
 interface Props {
     onNext: (data: Record<string, any>) => void;
@@ -53,66 +59,131 @@ export default function StepOne({ onNext, initialData }: Props) {
     const extractDataFromText = (text: string) => {
         const extracted: Record<string, string> = {};
 
-        const namePatterns = [
-            /(?:nom|name|surname)[:\s]*([A-Z\s]+)/i,
-            /^([A-Z]{2,}\s[A-Z]{2,})/,
+        // Nettoyer le texte
+        const cleanText = text.replace(/\s+/g, ' ').trim();
+        console.log('Texte OCR brut:', text);
+
+        // Pattern pour le numéro de document burkinabé (Bxxxxxxxx)
+        const burkinaDocPatterns = [
+            /B\s*(\d{7,9})/i,
+            /(?:B|8)\s*(\d{7,9})/,
+            /\b[B8]\s*[12]\s*[2]\s*[8]\s*[7]\s*[2]\s*[0]\s*[7]\s*[4]\b/i,
         ];
 
-        const documentNumberPatterns = [
-            /(?:n°|no|number|numéro)[:\s]*([A-Z0-9]+)/i,
-            /([A-Z]{2}[0-9]{7,10})/,
-        ];
-
-        const dateOfBirthPatterns = [
-            /(?:date\s+of\s+birth|né\s+le|dob)[:\s]*(\d{2}[\/\-\.]\d{2}[\/\-\.]\d{4})/i,
-            /(\d{2}[\/\-\.]\d{2}[\/\-\.]\d{4})/,
-        ];
-
-        const nationalityPatterns = [
-            /(?:nationality|nationalité)[:\s]*([A-Z\s]+)/i,
-        ];
-
-        for (const pattern of namePatterns) {
-            const match = text.match(pattern);
+        for (const pattern of burkinaDocPatterns) {
+            const match = cleanText.match(pattern);
             if (match) {
-                const fullName = match[1].trim().split(/\s+/);
-                if (fullName.length >= 2) {
-                    extracted.first_name = fullName.slice(0, -1).join(' ');
-                    extracted.last_name = fullName[fullName.length - 1];
+                const numbers = match[0].replace(/[^\d]/g, '');
+                if (numbers.length >= 7) {
+                    extracted.document_number = 'B' + numbers;
+                    extracted.document_type = 'ID Card';
+                    console.log(
+                        'Numéro de document trouvé:',
+                        extracted.document_number,
+                    );
+                    break;
                 }
+            }
+        }
+
+        // Pattern pour le nom (Nom:)
+        const lastNamePatterns = [
+            /(?:Nom|NAME)[:\s]+([A-ZÀ-ÿ\s]+?)(?:\n|Pr[ée]noms?|$)/i,
+            /Nom[:\s]*([A-ZÀ-ÿ]+)/i,
+        ];
+
+        for (const pattern of lastNamePatterns) {
+            const match = text.match(pattern);
+            if (match) {
+                extracted.last_name = match[1].trim().toUpperCase();
+                console.log('Nom trouvé:', extracted.last_name);
                 break;
             }
         }
 
-        for (const pattern of documentNumberPatterns) {
+        // Pattern pour le prénom (Prénoms:)
+        const firstNamePatterns = [
+            /(?:Pr[eé]noms?|PRENOM)[:\s]+([A-ZÀ-ÿ\s]+?)(?:\n|N[ée]|Sexe|$)/i,
+            /Pr[eé]noms?[:\s]*([A-ZÀ-ÿ\s]+)/i,
+        ];
+
+        for (const pattern of firstNamePatterns) {
             const match = text.match(pattern);
             if (match) {
-                extracted.document_number = match[1].trim();
+                extracted.first_name = match[1].trim();
+                console.log('Prénom trouvé:', extracted.first_name);
                 break;
             }
         }
+
+        // Pattern pour la date de naissance (Né le:)
+        const dateOfBirthPatterns = [
+            /N[ée]\s*(?:\(e\))?\s*le[:\s]*(\d{2})[\/\-\.\s]*(\d{2})[\/\-\.\s]*(\d{4})/i,
+            /(?:Date\s+de\s+naissance|DOB|Birth)[:\s]*(\d{2})[\/\-\.\s]*(\d{2})[\/\-\.\s]*(\d{4})/i,
+            /(\d{2})[\/\-\.](\d{2})[\/\-\.](\d{4})\s*[àÀa]\s*/i,
+        ];
 
         for (const pattern of dateOfBirthPatterns) {
             const match = text.match(pattern);
             if (match) {
-                const dateStr = match[1];
-                const dateParts = dateStr.split(/[\/\-\.]/);
-                if (dateParts.length === 3) {
-                    const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-                    extracted.date_of_birth = formattedDate;
-                }
+                const day = match[1];
+                const month = match[2];
+                const year = match[3];
+                extracted.date_of_birth = `${year}-${month}-${day}`;
+                console.log(
+                    'Date de naissance trouvée:',
+                    extracted.date_of_birth,
+                );
                 break;
             }
         }
 
-        for (const pattern of nationalityPatterns) {
+        // Pattern pour la profession
+        const professionPatterns = [
+            /(?:Profession|PROFESSION)[:\s]+([A-ZÀ-ÿ\s]+?)(?:\n|D[ée]livr[ée]e|$)/i,
+            /Profession[:\s]*([A-ZÀ-ÿ\s]+)/i,
+        ];
+
+        for (const pattern of professionPatterns) {
             const match = text.match(pattern);
             if (match) {
-                extracted.nationality = match[1].trim();
+                extracted.profession = match[1].trim();
+                console.log('Profession trouvée:', extracted.profession);
                 break;
             }
         }
 
+        // Pattern pour la nationalité (si carte burkinabé détectée)
+        if (
+            extracted.document_number &&
+            extracted.document_number.startsWith('B')
+        ) {
+            extracted.nationality = 'Burkinabé';
+            console.log('Nationalité déduite: Burkinabé');
+        }
+
+        // Pattern pour le lieu de naissance
+        const placeOfBirthPatterns = [
+            /[àÀa]\s+([A-ZÀ-ÿ\s]+?)(?:\n|Sexe|$)/i,
+            /(?:lieu\s+de\s+naissance|Place\s+of\s+Birth)[:\s]*([A-ZÀ-ÿ\s]+)/i,
+        ];
+
+        for (const pattern of placeOfBirthPatterns) {
+            const match = text.match(pattern);
+            if (match && !extracted.place_of_birth) {
+                const place = match[1].trim();
+                if (place.length > 2 && place.length < 50) {
+                    extracted.place_of_birth = place;
+                    console.log(
+                        'Lieu de naissance trouvé:',
+                        extracted.place_of_birth,
+                    );
+                    break;
+                }
+            }
+        }
+
+        console.log('Données extraites:', extracted);
         return extracted;
     };
 
@@ -121,21 +192,46 @@ export default function StepOne({ onNext, initialData }: Props) {
         setOcrMessage('Extraction des informations du document en cours...');
 
         try {
-            const worker = await createWorker('fra+eng');
+            const worker = await createWorker('fra+eng', 1, {
+                logger: (m) => {
+                    if (m.status === 'recognizing text') {
+                        setOcrMessage(
+                            `Reconnaissance en cours... ${Math.round(m.progress * 100)}%`,
+                        );
+                    }
+                },
+            });
+
+            // Configuration pour une meilleure reconnaissance
+            await worker.setParameters({
+                tessedit_char_whitelist:
+                    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŸàâäçéèêëîïôöùûüÿ0123456789 :./\n-',
+                tessedit_pageseg_mode: '1', // Automatic page segmentation with OSD
+            });
+
             const { data } = await worker.recognize(file);
             await worker.terminate();
+
+            console.log('Texte OCR complet:', data.text);
 
             const extractedData = extractDataFromText(data.text);
 
             if (Object.keys(extractedData).length === 0) {
-                setOcrMessage('Aucune information extraite. Veuillez remplir les champs manuellement.');
+                setOcrMessage(
+                    '⚠️ Aucune information extraite. Veuillez remplir les champs manuellement.',
+                );
             } else {
-                setOcrMessage('Informations extraites avec succès. Vérifiez et corrigez si nécessaire.');
+                const fieldsFound = Object.keys(extractedData).length;
+                setOcrMessage(
+                    `✅ ${fieldsFound} champ(s) extrait(s) avec succès. Vérifiez et corrigez si nécessaire.`,
+                );
                 setFormData((prev) => ({ ...prev, ...extractedData }));
             }
         } catch (error) {
-            console.error('Erreur lors de l\'extraction OCR:', error);
-            setOcrMessage('Erreur lors de l\'extraction. Veuillez remplir les champs manuellement.');
+            console.error("Erreur lors de l'extraction OCR:", error);
+            setOcrMessage(
+                "❌ Erreur lors de l'extraction. Veuillez remplir les champs manuellement.",
+            );
         } finally {
             setIsProcessing(false);
         }
@@ -165,7 +261,8 @@ export default function StepOne({ onNext, initialData }: Props) {
         }
 
         if (!formData.document_number.trim()) {
-            newErrors.document_number = 'Le numéro de document est obligatoire.';
+            newErrors.document_number =
+                'Le numéro de document est obligatoire.';
         }
 
         setErrors(newErrors);
@@ -183,7 +280,8 @@ export default function StepOne({ onNext, initialData }: Props) {
             <div className="space-y-4 rounded-lg border p-4">
                 <Label>Scan du document d'identité *</Label>
                 <p className="text-sm text-muted-foreground">
-                    Téléchargez ou prenez une photo de votre document d'identité pour extraire automatiquement vos informations
+                    Téléchargez ou prenez une photo de votre document d'identité
+                    pour extraire automatiquement vos informations
                 </p>
 
                 <div className="flex gap-2">
@@ -233,7 +331,9 @@ export default function StepOne({ onNext, initialData }: Props) {
                 )}
 
                 {ocrMessage && !isProcessing && (
-                    <p className="text-sm text-muted-foreground">{ocrMessage}</p>
+                    <p className="text-sm text-muted-foreground">
+                        {ocrMessage}
+                    </p>
                 )}
 
                 {documentFile && (
@@ -246,21 +346,37 @@ export default function StepOne({ onNext, initialData }: Props) {
             <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2">
                     <Label htmlFor="document_type">Type de Document *</Label>
-                    <Select name="document_type" value={formData.document_type} onValueChange={(value) => handleSelectChange('document_type', value)}>
+                    <Select
+                        name="document_type"
+                        value={formData.document_type}
+                        onValueChange={(value) =>
+                            handleSelectChange('document_type', value)
+                        }
+                    >
                         <SelectTrigger>
                             <SelectValue placeholder="Choisissez le type" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="Passport">Passeport</SelectItem>
-                            <SelectItem value="ID Card">Carte d'identité</SelectItem>
-                            <SelectItem value="Driver License">Permis de conduire</SelectItem>
+                            <SelectItem value="ID Card">
+                                Carte d'identité
+                            </SelectItem>
+                            <SelectItem value="Driver License">
+                                Permis de conduire
+                            </SelectItem>
                         </SelectContent>
                     </Select>
-                    {errors.document_type && <p className="text-sm text-destructive">{errors.document_type}</p>}
+                    {errors.document_type && (
+                        <p className="text-sm text-destructive">
+                            {errors.document_type}
+                        </p>
+                    )}
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="document_number">Numéro de document *</Label>
+                    <Label htmlFor="document_number">
+                        Numéro de document *
+                    </Label>
                     <Input
                         id="document_number"
                         name="document_number"
@@ -268,7 +384,11 @@ export default function StepOne({ onNext, initialData }: Props) {
                         onChange={handleChange}
                         placeholder="Sint beatae illo la"
                     />
-                    {errors.document_number && <p className="text-sm text-destructive">{errors.document_number}</p>}
+                    {errors.document_number && (
+                        <p className="text-sm text-destructive">
+                            {errors.document_number}
+                        </p>
+                    )}
                 </div>
 
                 <div className="space-y-2">
@@ -280,7 +400,11 @@ export default function StepOne({ onNext, initialData }: Props) {
                         onChange={handleChange}
                         placeholder="Inscrivez votre prénom"
                     />
-                    {errors.first_name && <p className="text-sm text-destructive">{errors.first_name}</p>}
+                    {errors.first_name && (
+                        <p className="text-sm text-destructive">
+                            {errors.first_name}
+                        </p>
+                    )}
                 </div>
 
                 <div className="space-y-2">
@@ -292,7 +416,11 @@ export default function StepOne({ onNext, initialData }: Props) {
                         onChange={handleChange}
                         placeholder="Inscrivez votre nom de famille"
                     />
-                    {errors.last_name && <p className="text-sm text-destructive">{errors.last_name}</p>}
+                    {errors.last_name && (
+                        <p className="text-sm text-destructive">
+                            {errors.last_name}
+                        </p>
+                    )}
                 </div>
 
                 <div className="space-y-2">
@@ -373,7 +501,9 @@ export default function StepOne({ onNext, initialData }: Props) {
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="number_of_children">Nombre d'enfants (&lt;15 ans) avec vous à l'hôtel</Label>
+                    <Label htmlFor="number_of_children">
+                        Nombre d'enfants (&lt;15 ans) avec vous à l'hôtel
+                    </Label>
                     <Input
                         id="number_of_children"
                         name="number_of_children"
@@ -386,11 +516,14 @@ export default function StepOne({ onNext, initialData }: Props) {
             </div>
 
             <div className="flex justify-end gap-2">
-                <Button type="button" onClick={handleNext} disabled={isProcessing}>
+                <Button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={isProcessing}
+                >
                     Suivant
                 </Button>
             </div>
         </div>
     );
 }
- 
