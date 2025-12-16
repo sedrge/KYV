@@ -77,8 +77,8 @@ const mainNavItems: NavItem[] = [
 export function AppSidebar() {
     return (
         <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader>
-                <SidebarMenu>
+            <SidebarHeader className="bg-blue-600 dark:bg-blue-500"  >
+                <SidebarMenu  >
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link href={dashboard()} prefetch>
@@ -89,11 +89,11 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
 
-            <SidebarContent>
+            <SidebarContent  className="bg-red-500" >
                 <NavMain items={mainNavItems} />
             </SidebarContent>
 
-            <SidebarFooter>
+            <SidebarFooter className="bg-green-500">
                 <NavFooter className="mt-auto" />
                 <NavUser />
             </SidebarFooter>

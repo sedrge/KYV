@@ -7,17 +7,17 @@ export default function AppLogo() {
 
     const logoUrl = themeConfig?.logo_light
         ? `/storage/${themeConfig.logo_light}`
-        : '/images/logo1.png';
+        : './images/logo1.png';
 
     const organizationName = themeConfig?.organization_short_name
         || themeConfig?.organization_name
-        || 'Laravel Starter Kit';
+        || 'Know your visitor';
 
     const hasCustomLogo = themeConfig?.logo_light || themeConfig?.logo_dark;
 
     return (
         <>
-            <div className="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
+            <div className="flex aspect-square size-8 items-center justify-center rounded-md">
                 {hasCustomLogo ? (
                     <img
                         src={logoUrl}

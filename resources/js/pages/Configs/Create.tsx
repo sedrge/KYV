@@ -128,6 +128,25 @@ const configSections: Section[] = [
                 ],
             },
             {
+                id: 'sidebar_colors',
+                title: 'Sidebar',
+                fields: [
+
+                    { name: 'sidebar_header_bg', label: 'Couleur de l\'en-tête de la sidebar', type: 'color' },
+                    { name: 'sidebar_header_text', label: 'Couleur du texte de l\'en-tête de la sidebar', type: 'color' },
+                    { name: 'sidebar_header_font_family', label: 'Police de l\'en-tête de la sidebar', type: 'select', options: [
+                        { value: 'sans-serif', label: 'Sans Serif' },
+                        { value: 'serif', label: 'Serif' },
+                        { value: 'monospace', label: 'Monospace' },
+                    ] },
+                    { name: 'sidebar_header_font_size', label: 'Taille de la police de l\'en-tête de la sidebar', type: 'select', options: [
+                        { value: 'small', label: 'Petit' },
+                        { value: 'medium', label: 'Moyen' },
+                        { value: 'large', label: 'Grand' },
+                    ] },
+                ],
+            },
+            {
                 id: 'typography',
                 title: 'Typographie',
                 fields: [
