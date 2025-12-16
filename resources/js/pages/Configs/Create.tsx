@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import InputError from '@/components/input-error';
 import { ImageUpload } from '@/components/image-upload';
+import { ColorInput } from '@/components/color-input';
 import AppLayout from '@/layouts/app-layout';
 import ConfigController, { index, store } from '@/actions/App/Http/Controllers/ConfigController';
 import { type BreadcrumbItem, type Place } from '@/types';
@@ -50,6 +51,14 @@ type Section = {
 type Subsection = {
     id: string;
     title: string;
+    fields?: Field[];
+    cards?: Card[];
+};
+
+type Card = {
+    id: string;
+    title: string;
+    description?: string;
     fields: Field[];
 };
 
@@ -105,12 +114,26 @@ const configSections: Section[] = [
             {
                 id: 'logos',
                 title: 'Logos & Images',
-                fields: [
-                    { name: 'logo_light', label: 'Logo (mode clair)', type: 'file', accept: 'image/*', description: 'Format accepté: PNG, JPG, SVG' },
-                    { name: 'logo_dark', label: 'Logo (mode sombre)', type: 'file', accept: 'image/*', description: 'Format accepté: PNG, JPG, SVG' },
-                    { name: 'favicon', label: 'Favicon', type: 'file', accept: 'image/x-icon,image/png', description: 'Format accepté: ICO, PNG (16x16 ou 32x32)' },
-                    { name: 'background_login', label: 'Image de fond (connexion)', type: 'file', accept: 'image/*', description: 'Format accepté: PNG, JPG' },
-                    { name: 'background_dashboard', label: 'Image de fond (tableau de bord)', type: 'file', accept: 'image/*', description: 'Format accepté: PNG, JPG' },
+                cards: [
+                    {
+                        id: 'branding',
+                        title: 'Identité visuelle',
+                        description: 'Logos et icônes de votre organisation',
+                        fields: [
+                            { name: 'logo_light', label: 'Logo (mode clair)', type: 'file', accept: 'image/*', description: 'Format accepté: PNG, JPG, SVG' },
+                            { name: 'logo_dark', label: 'Logo (mode sombre)', type: 'file', accept: 'image/*', description: 'Format accepté: PNG, JPG, SVG' },
+                            { name: 'favicon', label: 'Favicon', type: 'file', accept: 'image/x-icon,image/png', description: 'Format accepté: ICO, PNG (16x16 ou 32x32)' },
+                        ],
+                    },
+                    {
+                        id: 'backgrounds',
+                        title: 'Images de fond',
+                        description: 'Personnalisez l\'arrière-plan de vos pages',
+                        fields: [
+                            { name: 'background_login', label: 'Image de fond (connexion)', type: 'file', accept: 'image/*', description: 'Format accepté: PNG, JPG' },
+                            { name: 'background_dashboard', label: 'Image de fond (tableau de bord)', type: 'file', accept: 'image/*', description: 'Format accepté: PNG, JPG' },
+                        ],
+                    },
                 ],
             },
             {
@@ -130,21 +153,89 @@ const configSections: Section[] = [
             {
                 id: 'sidebar_colors',
                 title: 'Sidebar',
-                fields: [
-
-                    { name: 'sidebar_header_bg', label: 'Couleur de l\'en-tête de la sidebar', type: 'color' },
-                    { name: 'sidebar_header_text', label: 'Couleur du texte de l\'en-tête de la sidebar', type: 'color' },
-                    { name: 'sidebar_header_font_family', label: 'Police de l\'en-tête de la sidebar', type: 'select', options: [
-                        { value: 'sans-serif', label: 'Sans Serif' },
-                        { value: 'serif', label: 'Serif' },
-                        { value: 'monospace', label: 'Monospace' },
-                    ] },
-                    { name: 'sidebar_header_font_size', label: 'Taille de la police de l\'en-tête de la sidebar', type: 'select', options: [
-                        { value: 'small', label: 'Petit' },
-                        { value: 'medium', label: 'Moyen' },
-                        { value: 'large', label: 'Grand' },
-                    ] },
-                ],
+                cards: [
+                    {
+                        id: 'sidebar_header_styling',
+                        title: 'Style de l\'en-tête de la sidebar',
+                        fields: [
+                            { name: 'sidebar_header_bg', label: 'Couleur de l\'en-tête de la sidebar', type: 'color' },
+                            { name: 'sidebar_header_text', label: 'Couleur du texte de l\'en-tête de la sidebar', type: 'color' },
+                            {
+                                name: 'sidebar_header_font_family', label: 'Police de l\'en-tête de la sidebar', type: 'select', options: [
+                                    { value: 'sans-serif', label: 'Sans Serif' },
+                                    { value: 'serif', label: 'Serif' },
+                                    { value: 'monospace', label: 'Monospace' },
+                                ]
+                            },
+                            {
+                                name: 'sidebar_header_font_size', label: 'Taille de la police de l\'en-tête de la sidebar', type: 'select', options: [
+                                    { value: 'small', label: 'Petit' },
+                                    { value: 'medium', label: 'Moyen' },
+                                    { value: 'large', label: 'Grand' },
+                                ]
+                            },
+                        ],
+                    },
+                    {
+                        id: 'sidebar_menu_styling',
+                        title: 'Style du menu de la sidebar',
+                        fields: [
+                            { name: 'sidebar_menu_bg', label: 'Couleur du menu de la sidebar', type: 'color' },
+                            { name: 'sidebar_menu_text', label: 'Couleur du texte du menu de la sidebar', type: 'color' },
+                            {
+                                name: 'sidebar_menu_font_family', label: 'Police du menu de la sidebar', type: 'select', options: [
+                                    { value: 'sans-serif', label: 'Sans Serif' },
+                                    { value: 'serif', label: 'Serif' },
+                                    { value: 'monospace', label: 'Monospace' },
+                                ]
+                            },
+                            {
+                                name: 'sidebar_menu_font_size', label: 'Taille de la police du menu de la sidebar', type: 'select', options: [
+                                    { value: 'small', label: 'Petit' },
+                                    { value: 'medium', label: 'Moyen' },
+                                    { value: 'large', label: 'Grand' },
+                                ]
+                            },
+                        ],
+                    },
+                    {
+                        id: 'sidebar_footer_styling',
+                        title: 'Style du pied de la sidebar',
+                        fields: [
+                            { name: 'sidebar_footer_bg', label: 'Couleur du pied de la sidebar', type: 'color' },
+                            { name: 'sidebar_footer_text', label: 'Couleur du texte du pied de la sidebar', type: 'color' },
+                            {
+                                name: 'sidebar_footer_font_family', label: 'Police du pied de la sidebar', type: 'select', options: [
+                                    { value: 'sans-serif', label: 'Sans Serif' },
+                                    { value: 'serif', label: 'Serif' },
+                                    { value: 'monospace', label: 'Monospace' },
+                                ]
+                            },
+                            {
+                                name: 'sidebar_footer_font_size', label: 'Taille de la police du pied de la sidebar', type: 'select', options: [
+                                    { value: 'small', label: 'Petit' },
+                                    { value: 'medium', label: 'Moyen' },
+                                    { value: 'large', label: 'Grand' },
+                                ]
+                            },
+                        ],
+                    },
+                ]
+            },
+            {
+                id: 'navbar_colors',
+                title: 'Navbar',
+                cards: [
+                    {
+                        id: 'navbar_styling',
+                        title: 'Style de la barre de navigation',
+                        fields: [
+                            { name: 'navbar_bg', label: 'Couleur de fond de la navbar', type: 'color' },
+                            { name: 'navbar_text', label: 'Couleur du texte de la navbar', type: 'color' },
+                            { name: 'navbar_border', label: 'Couleur de la bordure de la navbar', type: 'color' },
+                        ],
+                    }
+                ]
             },
             {
                 id: 'typography',
@@ -160,15 +251,19 @@ const configSections: Section[] = [
                 id: 'layout',
                 title: 'Mise en page',
                 fields: [
-                    { name: 'layout_type', label: 'Type de mise en page', type: 'select', options: [
-                        { value: 'sidebar', label: 'Sidebar' },
-                        { value: 'topbar', label: 'Topbar' },
-                        { value: 'mixed', label: 'Mixte' },
-                    ] },
-                    { name: 'sidebar_position', label: 'Position de la sidebar', type: 'select', options: [
-                        { value: 'left', label: 'Gauche' },
-                        { value: 'right', label: 'Droite' },
-                    ] },
+                    {
+                        name: 'layout_type', label: 'Type de mise en page', type: 'select', options: [
+                            { value: 'sidebar', label: 'Sidebar' },
+                            { value: 'topbar', label: 'Topbar' },
+                            { value: 'mixed', label: 'Mixte' },
+                        ]
+                    },
+                    {
+                        name: 'sidebar_position', label: 'Position de la sidebar', type: 'select', options: [
+                            { value: 'left', label: 'Gauche' },
+                            { value: 'right', label: 'Droite' },
+                        ]
+                    },
                     { name: 'sidebar_collapsed_by_default', label: 'Sidebar réduite par défaut', type: 'checkbox', defaultValue: false },
                     { name: 'border_radius', label: 'Rayon des bordures', type: 'text', description: 'Ex: 4px, 8px' },
                     { name: 'shadow_style', label: 'Style d\'ombre', type: 'text' },
@@ -196,10 +291,12 @@ const configSections: Section[] = [
                 title: 'En-tête',
                 fields: [
                     { name: 'show_header', label: 'Afficher l\'en-tête', type: 'checkbox', defaultValue: true },
-                    { name: 'header_type', label: 'Type d\'en-tête', type: 'select', options: [
-                        { value: 'fixed', label: 'Fixe' },
-                        { value: 'static', label: 'Statique' },
-                    ] },
+                    {
+                        name: 'header_type', label: 'Type d\'en-tête', type: 'select', options: [
+                            { value: 'fixed', label: 'Fixe' },
+                            { value: 'static', label: 'Statique' },
+                        ]
+                    },
                     { name: 'header_background_color', label: 'Couleur de fond', type: 'color' },
                     { name: 'custom_header_html', label: 'HTML personnalisé', type: 'textarea' },
                 ],
@@ -281,20 +378,24 @@ const configSections: Section[] = [
                 title: 'Paramètres régionaux',
                 fields: [
                     { name: 'currency', label: 'Devise', type: 'text', defaultValue: 'EUR' },
-                    { name: 'currency_position', label: 'Position de la devise', type: 'select', options: [
-                        { value: 'before', label: 'Avant' },
-                        { value: 'after', label: 'Après' },
-                    ] },
+                    {
+                        name: 'currency_position', label: 'Position de la devise', type: 'select', options: [
+                            { value: 'before', label: 'Avant' },
+                            { value: 'after', label: 'Après' },
+                        ]
+                    },
                     { name: 'number_format', label: 'Format des nombres', type: 'text' },
-                    { name: 'first_day_of_week', label: 'Premier jour de la semaine', type: 'select', options: [
-                        { value: '0', label: 'Dimanche' },
-                        { value: '1', label: 'Lundi' },
-                        { value: '2', label: 'Mardi' },
-                        { value: '3', label: 'Mercredi' },
-                        { value: '4', label: 'Jeudi' },
-                        { value: '5', label: 'Vendredi' },
-                        { value: '6', label: 'Samedi' },
-                    ] },
+                    {
+                        name: 'first_day_of_week', label: 'Premier jour de la semaine', type: 'select', options: [
+                            { value: '0', label: 'Dimanche' },
+                            { value: '1', label: 'Lundi' },
+                            { value: '2', label: 'Mardi' },
+                            { value: '3', label: 'Mercredi' },
+                            { value: '4', label: 'Jeudi' },
+                            { value: '5', label: 'Vendredi' },
+                            { value: '6', label: 'Samedi' },
+                        ]
+                    },
                 ],
             },
         ],
@@ -311,11 +412,13 @@ const configSections: Section[] = [
                     { name: 'max_file_size', label: 'Taille maximale de fichier (Ko)', type: 'number', defaultValue: 10240 },
                     { name: 'auto_generate_reference', label: 'Générer les références automatiquement', type: 'checkbox', defaultValue: true },
                     { name: 'document_prefix', label: 'Préfixe des documents', type: 'text', defaultValue: 'DOC' },
-                    { name: 'storage_location', label: 'Emplacement de stockage', type: 'select', options: [
-                        { value: 'local', label: 'Local' },
-                        { value: 's3', label: 'S3' },
-                        { value: 'cloud', label: 'Cloud' },
-                    ] },
+                    {
+                        name: 'storage_location', label: 'Emplacement de stockage', type: 'select', options: [
+                            { value: 'local', label: 'Local' },
+                            { value: 's3', label: 'S3' },
+                            { value: 'cloud', label: 'Cloud' },
+                        ]
+                    },
                 ],
             },
             {
@@ -435,11 +538,13 @@ const configSections: Section[] = [
                 title: 'Configuration de facturation',
                 fields: [
                     { name: 'subscription_plan', label: 'Plan d\'abonnement', type: 'text' },
-                    { name: 'billing_cycle', label: 'Cycle de facturation', type: 'select', options: [
-                        { value: 'monthly', label: 'Mensuel' },
-                        { value: 'yearly', label: 'Annuel' },
-                        { value: 'quarterly', label: 'Trimestriel' },
-                    ] },
+                    {
+                        name: 'billing_cycle', label: 'Cycle de facturation', type: 'select', options: [
+                            { value: 'monthly', label: 'Mensuel' },
+                            { value: 'yearly', label: 'Annuel' },
+                            { value: 'quarterly', label: 'Trimestriel' },
+                        ]
+                    },
                     { name: 'trial_days', label: 'Jours d\'essai', type: 'number', defaultValue: 14 },
                     { name: 'payment_provider', label: 'Fournisseur de paiement', type: 'text' },
                     { name: 'invoice_prefix', label: 'Préfixe de facture', type: 'text', defaultValue: 'INV' },
@@ -460,11 +565,13 @@ const configSections: Section[] = [
                     { name: 'maintenance_mode', label: 'Mode maintenance', type: 'checkbox', defaultValue: false },
                     { name: 'debug_enabled', label: 'Debug activé', type: 'checkbox', defaultValue: false },
                     { name: 'cache_enabled', label: 'Cache activé', type: 'checkbox', defaultValue: true },
-                    { name: 'performance_level', label: 'Niveau de performance', type: 'select', options: [
-                        { value: 'low', label: 'Faible' },
-                        { value: 'medium', label: 'Moyen' },
-                        { value: 'high', label: 'Élevé' },
-                    ] },
+                    {
+                        name: 'performance_level', label: 'Niveau de performance', type: 'select', options: [
+                            { value: 'low', label: 'Faible' },
+                            { value: 'medium', label: 'Moyen' },
+                            { value: 'high', label: 'Élevé' },
+                        ]
+                    },
                 ],
             },
             {
@@ -479,6 +586,24 @@ const configSections: Section[] = [
     },
 ];
 
+function SettingCard({ card, errors }: { card: Card; errors: Record<string, string> }) {
+    return (
+        <div className="mb-6 rounded-lg border bg-card p-6 shadow-sm">
+            <div className="mb-4">
+                <h3 className="text-base font-semibold">{card.title}</h3>
+                {card.description && (
+                    <p className="text-sm text-muted-foreground mt-1">{card.description}</p>
+                )}
+            </div>
+            <div className="space-y-0">
+                {card.fields.map((field) => (
+                    <SettingField key={field.name} field={field} errors={errors} />
+                ))}
+            </div>
+        </div>
+    );
+}
+
 function SettingField({ field, errors }: { field: Field; errors: Record<string, string> }) {
     if (field.type === 'file') {
         return (
@@ -489,6 +614,19 @@ function SettingField({ field, errors }: { field: Field; errors: Record<string, 
                 accept={field.accept}
                 error={errors[field.name]}
             />
+        );
+    }
+
+    if (field.type === 'color') {
+        return (
+            <div className="py-3 border-b border-border/40 last:border-0">
+                <ColorInput
+                    label={field.label}
+                    name={field.name}
+                    value={field.defaultValue as string}
+                    error={errors[field.name]}
+                />
+            </div>
         );
     }
 
@@ -576,7 +714,6 @@ function SettingField({ field, errors }: { field: Field; errors: Record<string, 
                     name={field.name}
                     type={field.type}
                     defaultValue={field.defaultValue?.toString()}
-                    className={field.type === 'color' ? 'h-10' : ''}
                 />
                 {errors[field.name] && <InputError message={errors[field.name]} className="mt-1" />}
             </div>
@@ -595,7 +732,7 @@ export default function Create({ places }: { places: Place[] }) {
                     if (subsection.id === 'identity') {
                         return {
                             ...subsection,
-                            fields: subsection.fields.map((field) =>
+                            fields: subsection.fields?.map((field) =>
                                 field.name === 'place_id' ? { ...field, options: placeOptions } : field
                             ),
                         };
@@ -652,9 +789,8 @@ export default function Create({ places }: { places: Place[] }) {
                                                             setActiveSection(section.id);
                                                             setActiveSubsection(section.subsections[0].id);
                                                         }}
-                                                        className={`w-full text-left px-4 py-1.5 text-sm font-medium hover:bg-accent/50 transition-colors flex items-center gap-2 ${
-                                                            activeSection === section.id ? 'text-foreground' : 'text-muted-foreground'
-                                                        }`}
+                                                        className={`w-full text-left px-4 py-1.5 text-sm font-medium hover:bg-accent/50 transition-colors flex items-center gap-2 ${activeSection === section.id ? 'text-foreground' : 'text-muted-foreground'
+                                                            }`}
                                                     >
                                                         <Icon className="h-4 w-4 flex-shrink-0" />
                                                         <span>{section.title}</span>
@@ -666,11 +802,10 @@ export default function Create({ places }: { places: Place[] }) {
                                                                     key={subsection.id}
                                                                     type="button"
                                                                     onClick={() => setActiveSubsection(subsection.id)}
-                                                                    className={`w-full text-left px-4 py-1 text-xs hover:bg-accent/50 transition-colors ${
-                                                                        activeSubsection === subsection.id
-                                                                            ? 'text-foreground font-medium bg-accent/30'
-                                                                            : 'text-muted-foreground'
-                                                                    }`}
+                                                                    className={`w-full text-left px-4 py-1 text-xs hover:bg-accent/50 transition-colors ${activeSubsection === subsection.id
+                                                                        ? 'text-foreground font-medium bg-accent/30'
+                                                                        : 'text-muted-foreground'
+                                                                        }`}
                                                                 >
                                                                     {subsection.title}
                                                                 </button>
@@ -695,9 +830,19 @@ export default function Create({ places }: { places: Place[] }) {
                                         </div>
 
                                         <div className="space-y-0">
-                                            {currentSubsection?.fields.map((field) => (
-                                                <SettingField key={field.name} field={field} errors={errors} />
-                                            ))}
+                                            {currentSubsection?.fields && (
+                                                currentSubsection.fields.map((field) => (
+                                                    <SettingField key={field.name} field={field} errors={errors} />
+                                                ))
+                                            )}
+
+                                            {currentSubsection?.cards && (
+                                                <div className="space-y-4">
+                                                    {currentSubsection.cards.map((card) => (
+                                                        <SettingCard key={card.id} card={card} errors={errors} />
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

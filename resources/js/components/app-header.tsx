@@ -74,10 +74,23 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
         href: link.href,
         icon: null,
     })) || defaultRightNavItems;
+
+    const navbarStyle = themeConfig?.navbar_bg
+        ? { backgroundColor: themeConfig.navbar_bg }
+        : undefined;
+
+    const navbarBorderStyle = themeConfig?.navbar_border
+        ? { borderColor: themeConfig.navbar_border }
+        : undefined;
+
+    const navbarTextStyle = themeConfig?.navbar_text
+        ? { color: themeConfig.navbar_text }
+        : undefined;
+
     return (
         <>
-            <div className="border-b border-sidebar-border/80">
-                <div className="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
+            <div className="border-b border-sidebar-border/80" style={navbarBorderStyle}>
+                <div className="mx-auto flex h-16 items-center px-4 md:max-w-7xl" style={navbarStyle}>
                     {/* Mobile Menu */}
                     <div className="lg:hidden">
                         <Sheet>
@@ -257,8 +270,8 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                 </div>
             </div>
             {breadcrumbs.length > 1 && (
-                <div className="flex w-full border-b border-sidebar-border/70">
-                    <div className="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl">
+                <div className="flex w-full border-b border-sidebar-border/70" style={navbarBorderStyle}>
+                    <div className="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl" style={{ ...navbarStyle, ...navbarTextStyle }}>
                         <Breadcrumbs breadcrumbs={breadcrumbs} />
                     </div>
                 </div>

@@ -65,6 +65,21 @@ export interface Config {
         secondary_color?: string;
         accent_color?: string;
         footer_text?: string;
+        sidebar_header_bg?: string;
+        sidebar_header_text?: string;
+        sidebar_header_font_family?: string;
+        sidebar_header_font_size?: number;
+        sidebar_menu_bg?: string;
+        sidebar_menu_text?: string;
+        sidebar_menu_font_family?: string;
+        sidebar_menu_font_size?: number;
+        sidebar_footer_bg?: string;
+        sidebar_footer_text?: string;
+        sidebar_footer_font_family?: string;
+        sidebar_footer_font_size?: number;
+        navbar_bg?: string;
+        navbar_text?: string;
+        navbar_border?: string;
         footer_links?: Array<{
             title: string;
             href: string;

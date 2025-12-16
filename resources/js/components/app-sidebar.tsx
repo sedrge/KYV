@@ -11,8 +11,8 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { SharedData, type NavItem } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
 import { BuildingIcon, ChartBarIcon, LayoutGrid, LockIcon, SettingsIcon, ShieldIcon, Users2Icon, FileText } from 'lucide-react';
 import AppLogo from './app-logo';
 import PlaceController from '@/actions/App/Http/Controllers/PlaceController';
@@ -75,10 +75,27 @@ const mainNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { themeConfig } = usePage<SharedData>().props;
+
+    const sidebarHeaderStyle = themeConfig?.sidebar_header_bg
+        ? { backgroundColor: themeConfig.sidebar_header_bg }
+        : undefined;
+
+    const sidebarMenuStyle = themeConfig?.sidebar_menu_bg
+        ? { backgroundColor: themeConfig.sidebar_menu_bg }
+        : undefined;
+
+    const sidebarFooterStyle = themeConfig?.sidebar_footer_bg
+        ? { backgroundColor: themeConfig.sidebar_footer_bg }
+        : undefined;
+
     return (
         <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader className="bg-blue-600 dark:bg-blue-500"  >
-                <SidebarMenu  >
+            <SidebarHeader
+                className="bg-white dark:bg-gray-800"
+                style={sidebarHeaderStyle}
+            >
+                <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link href={dashboard()} prefetch>
@@ -89,11 +106,17 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
 
-            <SidebarContent  className="bg-red-500" >
+            <SidebarContent
+                className="bg-white dark:bg-gray-800"
+                style={sidebarMenuStyle}
+            >
                 <NavMain items={mainNavItems} />
             </SidebarContent>
 
-            <SidebarFooter className="bg-green-500">
+            <SidebarFooter
+                className="bg-white dark:bg-gray-800"
+                style={sidebarFooterStyle}
+            >
                 <NavFooter className="mt-auto" />
                 <NavUser />
             </SidebarFooter>

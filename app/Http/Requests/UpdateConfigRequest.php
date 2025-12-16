@@ -37,14 +37,14 @@ class UpdateConfigRequest extends FormRequest
             'background_dashboard' => ['nullable', 'file', 'image', 'max:5120'],
 
             // 2. Thème & Apparence
-            'primary_color' => ['nullable', 'string', 'max:20'],
-            'secondary_color' => ['nullable', 'string', 'max:20'],
-            'accent_color' => ['nullable', 'string', 'max:20'],
-            'success_color' => ['nullable', 'string', 'max:20'],
-            'warning_color' => ['nullable', 'string', 'max:20'],
-            'danger_color' => ['nullable', 'string', 'max:20'],
-            'background_color' => ['nullable', 'string', 'max:20'],
-            'text_color' => ['nullable', 'string', 'max:20'],
+            'primary_color' => ['nullable', 'string', 'max:50'],
+            'secondary_color' => ['nullable', 'string', 'max:50'],
+            'accent_color' => ['nullable', 'string', 'max:50'],
+            'success_color' => ['nullable', 'string', 'max:50'],
+            'warning_color' => ['nullable', 'string', 'max:50'],
+            'danger_color' => ['nullable', 'string', 'max:50'],
+            'background_color' => ['nullable', 'string', 'max:50'],
+            'text_color' => ['nullable', 'string', 'max:50'],
             'font_family' => ['nullable', 'string', 'max:100'],
             'font_size_base' => ['nullable', 'string', 'max:20'],
             'font_size_title' => ['nullable', 'string', 'max:20'],
@@ -55,6 +55,25 @@ class UpdateConfigRequest extends FormRequest
             'border_radius' => ['nullable', 'string', 'max:20'],
             'shadow_style' => ['nullable', 'string', 'max:50'],
 
+            // Sidebar styling
+            'sidebar_header_bg' => ['nullable', 'string', 'max:50'],
+            'sidebar_header_text' => ['nullable', 'string', 'max:50'],
+            'sidebar_header_font_family' => ['nullable', 'string', 'max:50'],
+            'sidebar_header_font_size' => ['nullable', 'string', 'max:20'],
+            'sidebar_menu_bg' => ['nullable', 'string', 'max:50'],
+            'sidebar_menu_text' => ['nullable', 'string', 'max:50'],
+            'sidebar_menu_font_family' => ['nullable', 'string', 'max:50'],
+            'sidebar_menu_font_size' => ['nullable', 'string', 'max:20'],
+            'sidebar_footer_bg' => ['nullable', 'string', 'max:50'],
+            'sidebar_footer_text' => ['nullable', 'string', 'max:50'],
+            'sidebar_footer_font_family' => ['nullable', 'string', 'max:50'],
+            'sidebar_footer_font_size' => ['nullable', 'string', 'max:20'],
+
+            // Navbar styling
+            'navbar_bg' => ['nullable', 'string', 'max:50'],
+            'navbar_text' => ['nullable', 'string', 'max:50'],
+            'navbar_border' => ['nullable', 'string', 'max:50'],
+
             // 3. Navigation & Structure
             'show_sidebar' => ['nullable', 'boolean'],
             'sidebar_items' => ['nullable', 'array'],
@@ -63,12 +82,12 @@ class UpdateConfigRequest extends FormRequest
             'custom_sidebar_html' => ['nullable', 'string'],
             'show_header' => ['nullable', 'boolean'],
             'header_type' => ['nullable', 'string', 'in:fixed,static'],
-            'header_background_color' => ['nullable', 'string', 'max:20'],
+            'header_background_color' => ['nullable', 'string', 'max:50'],
             'custom_header_html' => ['nullable', 'string'],
             'show_footer' => ['nullable', 'boolean'],
             'footer_text' => ['nullable', 'string'],
             'footer_links' => ['nullable', 'array'],
-            'footer_background_color' => ['nullable', 'string', 'max:20'],
+            'footer_background_color' => ['nullable', 'string', 'max:50'],
 
             // 4. Sécurité & Authentification
             'enable_registration' => ['nullable', 'boolean'],

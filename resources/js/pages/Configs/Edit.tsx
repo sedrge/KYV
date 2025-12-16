@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import InputError from '@/components/input-error';
 import { ImageUpload } from '@/components/image-upload';
+import { ColorInput } from '@/components/color-input';
 import AppLayout from '@/layouts/app-layout';
 import { index, update } from '@/actions/App/Http/Controllers/ConfigController';
 import { type BreadcrumbItem, type Place } from '@/types';
@@ -43,7 +44,7 @@ interface Config {
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Configurations', href: index().url },
-    { title: 'Modifier configuration' },
+    { title: 'Modifier configuration', href: '#' },
 ];
 
 type Section = {
@@ -56,6 +57,14 @@ type Section = {
 type Subsection = {
     id: string;
     title: string;
+    fields?: Field[];
+    cards?: Card[];
+};
+
+type Card = {
+    id: string;
+    title: string;
+    description?: string;
     fields: Field[];
 };
 
@@ -132,6 +141,93 @@ const configSections: Section[] = [
                     { name: 'background_color', label: 'Couleur de fond', type: 'color' },
                     { name: 'text_color', label: 'Couleur du texte', type: 'color' },
                 ],
+            },
+            {
+                id: 'sidebar_colors',
+                title: 'Sidebar',
+                cards: [
+                    {
+                        id: 'sidebar_header_styling',
+                        title: 'Style de l\'en-tête de la sidebar',
+                        fields: [
+                            { name: 'sidebar_header_bg', label: 'Couleur de l\'en-tête de la sidebar', type: 'color' },
+                            { name: 'sidebar_header_text', label: 'Couleur du texte de l\'en-tête de la sidebar', type: 'color' },
+                            {
+                                name: 'sidebar_header_font_family', label: 'Police de l\'en-tête de la sidebar', type: 'select', options: [
+                                    { value: 'sans-serif', label: 'Sans Serif' },
+                                    { value: 'serif', label: 'Serif' },
+                                    { value: 'monospace', label: 'Monospace' },
+                                ]
+                            },
+                            {
+                                name: 'sidebar_header_font_size', label: 'Taille de la police de l\'en-tête de la sidebar', type: 'select', options: [
+                                    { value: 'small', label: 'Petit' },
+                                    { value: 'medium', label: 'Moyen' },
+                                    { value: 'large', label: 'Grand' },
+                                ]
+                            },
+                        ],
+                    },
+                    {
+                        id: 'sidebar_menu_styling',
+                        title: 'Style du menu de la sidebar',
+                        fields: [
+                            { name: 'sidebar_menu_bg', label: 'Couleur du menu de la sidebar', type: 'color' },
+                            { name: 'sidebar_menu_text', label: 'Couleur du texte du menu de la sidebar', type: 'color' },
+                            {
+                                name: 'sidebar_menu_font_family', label: 'Police du menu de la sidebar', type: 'select', options: [
+                                    { value: 'sans-serif', label: 'Sans Serif' },
+                                    { value: 'serif', label: 'Serif' },
+                                    { value: 'monospace', label: 'Monospace' },
+                                ]
+                            },
+                            {
+                                name: 'sidebar_menu_font_size', label: 'Taille de la police du menu de la sidebar', type: 'select', options: [
+                                    { value: 'small', label: 'Petit' },
+                                    { value: 'medium', label: 'Moyen' },
+                                    { value: 'large', label: 'Grand' },
+                                ]
+                            },
+                        ],
+                    },
+                    {
+                        id: 'sidebar_footer_styling',
+                        title: 'Style du pied de la sidebar',
+                        fields: [
+                            { name: 'sidebar_footer_bg', label: 'Couleur du pied de la sidebar', type: 'color' },
+                            { name: 'sidebar_footer_text', label: 'Couleur du texte du pied de la sidebar', type: 'color' },
+                            {
+                                name: 'sidebar_footer_font_family', label: 'Police du pied de la sidebar', type: 'select', options: [
+                                    { value: 'sans-serif', label: 'Sans Serif' },
+                                    { value: 'serif', label: 'Serif' },
+                                    { value: 'monospace', label: 'Monospace' },
+                                ]
+                            },
+                            {
+                                name: 'sidebar_footer_font_size', label: 'Taille de la police du pied de la sidebar', type: 'select', options: [
+                                    { value: 'small', label: 'Petit' },
+                                    { value: 'medium', label: 'Moyen' },
+                                    { value: 'large', label: 'Grand' },
+                                ]
+                            },
+                        ],
+                    },
+                ]
+            },
+            {
+                id: 'navbar_colors',
+                title: 'Navbar',
+                cards: [
+                    {
+                        id: 'navbar_styling',
+                        title: 'Style de la barre de navigation',
+                        fields: [
+                            { name: 'navbar_bg', label: 'Couleur de fond de la navbar', type: 'color' },
+                            { name: 'navbar_text', label: 'Couleur du texte de la navbar', type: 'color' },
+                            { name: 'navbar_border', label: 'Couleur de la bordure de la navbar', type: 'color' },
+                        ],
+                    }
+                ]
             },
             {
                 id: 'typography',
@@ -466,6 +562,24 @@ const configSections: Section[] = [
     },
 ];
 
+function SettingCard({ card, errors, config }: { card: Card; errors: Record<string, string>; config: Config }) {
+    return (
+        <div className="mb-6 rounded-lg border bg-card p-6 shadow-sm">
+            <div className="mb-4">
+                <h3 className="text-base font-semibold">{card.title}</h3>
+                {card.description && (
+                    <p className="text-sm text-muted-foreground mt-1">{card.description}</p>
+                )}
+            </div>
+            <div className="space-y-0">
+                {card.fields.map((field) => (
+                    <SettingField key={field.name} field={field} errors={errors} config={config} />
+                ))}
+            </div>
+        </div>
+    );
+}
+
 function SettingField({ field, errors, config }: { field: Field; errors: Record<string, string>; config: Config }) {
     const getValue = (fieldName: string) => {
         if (fieldName === 'place_id') {
@@ -555,6 +669,19 @@ function SettingField({ field, errors, config }: { field: Field; errors: Record<
         );
     }
 
+    if (field.type === 'color') {
+        return (
+            <div className="py-3 border-b border-border/40 last:border-0">
+                <ColorInput
+                    label={field.label}
+                    name={field.name}
+                    value={getValue(field.name)?.toString() || ''}
+                    error={errors[field.name]}
+                />
+            </div>
+        );
+    }
+
     return (
         <div className="flex items-start gap-4 py-3 border-b border-border/40 last:border-0">
             <div className="flex-1 min-w-0">
@@ -571,7 +698,6 @@ function SettingField({ field, errors, config }: { field: Field; errors: Record<
                     name={field.name}
                     type={field.type}
                     defaultValue={getValue(field.name)?.toString()}
-                    className={field.type === 'color' ? 'h-10' : ''}
                 />
                 {errors[field.name] && <InputError message={errors[field.name]} className="mt-1" />}
             </div>
@@ -587,7 +713,7 @@ export default function Edit({ config, places }: { config: Config; places: Place
             return {
                 ...section,
                 subsections: section.subsections.map((subsection) => {
-                    if (subsection.id === 'identity') {
+                    if (subsection.id === 'identity' && subsection.fields) {
                         return {
                             ...subsection,
                             fields: subsection.fields.map((field) =>
@@ -690,9 +816,19 @@ export default function Edit({ config, places }: { config: Config; places: Place
                                         </div>
 
                                         <div className="space-y-0">
-                                            {currentSubsection?.fields.map((field) => (
-                                                <SettingField key={field.name} field={field} errors={errors} config={config} />
-                                            ))}
+                                            {currentSubsection?.fields && (
+                                                currentSubsection.fields.map((field) => (
+                                                    <SettingField key={field.name} field={field} errors={errors} config={config} />
+                                                ))
+                                            )}
+
+                                            {currentSubsection?.cards && (
+                                                <div className="space-y-4">
+                                                    {currentSubsection.cards.map((card) => (
+                                                        <SettingCard key={card.id} card={card} errors={errors} config={config} />
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

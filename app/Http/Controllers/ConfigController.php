@@ -51,7 +51,7 @@ class ConfigController extends Controller
         }
 
         Config::create([
-            'content' => $validated,
+            'content' => array_merge(config('default-theme'), $validated),
             'place_id' => $validated['place_id'] ?? null,
         ]);
 
@@ -99,8 +99,11 @@ class ConfigController extends Controller
             }
         }
 
+        // Merge with existing content to preserve fields not in the request
+        $mergedContent = array_merge($config->content ?? [], $validated);
+
         $config->update([
-            'content' => $validated,
+            'content' => $mergedContent,
             'place_id' => $validated['place_id'] ?? $config->place_id,
         ]);
 

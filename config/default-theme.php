@@ -41,6 +41,25 @@ return [
     'border_radius' => '0.5rem',
     'shadow_style' => '0 1px 3px 0 rgb(0 0 0 / 0.1)',
 
+    // Sidebar styling
+    'sidebar_header_bg' => null,
+    'sidebar_header_text' => null,
+    'sidebar_header_font_family' => null,
+    'sidebar_header_font_size' => null,
+    'sidebar_menu_bg' => null,
+    'sidebar_menu_text' => null,
+    'sidebar_menu_font_family' => null,
+    'sidebar_menu_font_size' => null,
+    'sidebar_footer_bg' => null,
+    'sidebar_footer_text' => null,
+    'sidebar_footer_font_family' => null,
+    'sidebar_footer_font_size' => null,
+
+    // Navbar styling
+    'navbar_bg' => null,
+    'navbar_text' => null,
+    'navbar_border' => null,
+
     // 3. Navigation & Structure
     'show_sidebar' => true,
     'sidebar_items' => [],
