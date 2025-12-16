@@ -21,11 +21,11 @@ export default function Register() {
                 {...store.form()}
                 resetOnSuccess={['password', 'password_confirmation']}
                 disableWhileProcessing
-                className="flex flex-col gap-6"
+                className="flex flex-col gap-4 sm:gap-6"
             >
                 {({ processing, errors }) => (
                     <>
-                        <div className="grid gap-6">
+                        <div className="grid gap-4 sm:gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="name">Name</Label>
                                 <Input
@@ -101,7 +101,7 @@ export default function Register() {
                             </Button>
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
+                        <div className="text-center text-xs text-muted-foreground sm:text-sm">
                             Already have an account?{' '}
                             <TextLink href={login()} tabIndex={6}>
                                 Log in

@@ -47,6 +47,7 @@
         "@radix-ui/react-tooltip": "^1.1.8",
         "@shadcn/ui": "^0.0.4",
         "@tailwindcss/vite": "^4.1.11",
+        "@techstark/opencv-js": "^4.12.0-release.1",
         "@types/react": "^19.2.0",
         "@types/react-dom": "^19.2.0",
         "@vitejs/plugin-react": "^5.0.0",

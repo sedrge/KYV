@@ -22,6 +22,7 @@ import ConfigController from '@/actions/App/Http/Controllers/ConfigController';
 import RoleController from '@/actions/App/Http/Controllers/RoleController';
 import PermissionController from '@/actions/App/Http/Controllers/PermissionController';
 import AuditController from '@/actions/App/Http/Controllers/AuditController';
+import VisitorController from '@/actions/App/Http/Controllers/VisitorController';
 
 const mainNavItems: NavItem[] = [
     {
@@ -49,6 +50,13 @@ const mainNavItems: NavItem[] = [
         href: UserController.index(),
         icon: Users2Icon,
     },
+
+    {
+        title: 'Visitors',
+        href: VisitorController.index(),
+        icon: Users2Icon,
+    },
+
     {
         title: 'Roles',
         href: RoleController.index(),

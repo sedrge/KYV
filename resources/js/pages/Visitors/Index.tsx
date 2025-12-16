@@ -35,16 +35,16 @@ export default function Index({ visitors }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Visiteurs" />
 
-            <div className="flex h-full flex-1 flex-col gap-4 p-4">
-                <div className="flex items-center justify-between">
+            <div className="flex h-full flex-1 flex-col gap-3 p-3 sm:gap-4 sm:p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold">Visiteurs</h1>
-                        <p className="text-muted-foreground">Gérer les visiteurs enregistrés</p>
+                        <h1 className="text-2xl font-bold sm:text-3xl">Visiteurs</h1>
+                        <p className="text-sm text-muted-foreground sm:text-base">Gérer les visiteurs enregistrés</p>
                     </div>
-                    <Link href={create().url}>
-                        <Button>
+                    <Link href={create().url} className="w-full sm:w-auto">
+                        <Button className="w-full sm:w-auto">
                             <Plus className="mr-2 h-4 w-4" />
-                            Nouveau visiteur
+                            <span className="sm:inline">Nouveau visiteur</span>
                         </Button>
                     </Link>
                 </div>
@@ -68,48 +68,56 @@ export default function Index({ visitors }: Props) {
                                 </Link>
                             </div>
                         ) : (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Nom complet</TableHead>
-                                        <TableHead>Type de document</TableHead>
-                                        <TableHead>Numéro de document</TableHead>
-                                        <TableHead>Nationalité</TableHead>
-                                        <TableHead>Date d'arrivée</TableHead>
-                                        <TableHead>Date de départ</TableHead>
-                                        <TableHead>Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
+                            <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className="min-w-[150px]">Nom complet</TableHead>
+                                            <TableHead className="hidden sm:table-cell">Type de document</TableHead>
+                                            <TableHead className="hidden md:table-cell">Numéro de document</TableHead>
+                                            <TableHead className="hidden lg:table-cell">Nationalité</TableHead>
+                                            <TableHead className="hidden xl:table-cell">Date d'arrivée</TableHead>
+                                            <TableHead className="hidden xl:table-cell">Date de départ</TableHead>
+                                            <TableHead className="text-right">Actions</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
                                 <TableBody>
                                     {visitors.map((visitor) => (
                                         <TableRow key={visitor.id}>
                                             <TableCell className="font-medium">
-                                                {visitor.first_name} {visitor.last_name}
+                                                <div className="flex flex-col">
+                                                    <span>{visitor.first_name} {visitor.last_name}</span>
+                                                    <span className="text-xs text-muted-foreground sm:hidden">
+                                                        {visitor.document_type} - {visitor.document_number}
+                                                    </span>
+                                                </div>
                                             </TableCell>
-                                            <TableCell>{visitor.document_type}</TableCell>
-                                            <TableCell>{visitor.document_number}</TableCell>
-                                            <TableCell>{visitor.nationality || '-'}</TableCell>
-                                            <TableCell>
+                                            <TableCell className="hidden sm:table-cell">{visitor.document_type}</TableCell>
+                                            <TableCell className="hidden md:table-cell">{visitor.document_number}</TableCell>
+                                            <TableCell className="hidden lg:table-cell">{visitor.nationality || '-'}</TableCell>
+                                            <TableCell className="hidden xl:table-cell">
                                                 {visitor.arrival_date
                                                     ? new Date(visitor.arrival_date).toLocaleDateString('fr-FR')
                                                     : '-'}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="hidden xl:table-cell">
                                                 {visitor.departure_date
                                                     ? new Date(visitor.departure_date).toLocaleDateString('fr-FR')
                                                     : '-'}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="text-right">
                                                 <Link href={show(visitor.id).url}>
                                                     <Button variant="ghost" size="icon">
                                                         <Eye className="h-4 w-4" />
+                                                        <span className="sr-only">Voir</span>
                                                     </Button>
                                                 </Link>
                                             </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
-                            </Table>
+                                </Table>
+                            </div>
                         )}
                     </CardContent>
                 </Card>

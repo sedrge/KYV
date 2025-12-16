@@ -12,6 +12,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { Camera, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { createWorker } from 'tesseract.js';
+import CameraModal from '@/components/ui/CameraModal';
+
 
 interface Props {
     onNext: (data: Record<string, any>) => void;
@@ -40,6 +42,8 @@ export default function StepOne({ onNext, initialData }: Props) {
     const [ocrMessage, setOcrMessage] = useState<string>('');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
+    const [showCamera, setShowCamera] = useState(false);
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -276,6 +280,19 @@ export default function StepOne({ onNext, initialData }: Props) {
     };
 
     return (
+        <>
+        {showCamera && (
+            <CameraModal
+                documentType={formData.document_type}
+                onClose={() => setShowCamera(false)}
+                onCapture={async (file) => {
+                setShowCamera(false);
+                setDocumentFile(file);
+                await processImage(file);
+                }}
+            />
+            )}
+
         <div className="space-y-6">
             <div className="space-y-4 rounded-lg border p-4">
                 <Label>Scan du document d'identité *</Label>
@@ -298,12 +315,13 @@ export default function StepOne({ onNext, initialData }: Props) {
                     <Button
                         type="button"
                         variant="outline"
-                        onClick={() => cameraInputRef.current?.click()}
+                        onClick={() => setShowCamera(true)}
                         disabled={isProcessing}
-                    >
+                        >
                         <Camera className="mr-2 h-4 w-4" />
                         Prendre une photo
                     </Button>
+
                 </div>
 
                 <input
@@ -341,6 +359,7 @@ export default function StepOne({ onNext, initialData }: Props) {
                         Document sélectionné : {documentFile.name}
                     </p>
                 )}
+                
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
@@ -525,5 +544,6 @@ export default function StepOne({ onNext, initialData }: Props) {
                 </Button>
             </div>
         </div>
+        </>
     );
 }

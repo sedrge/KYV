@@ -32,11 +32,11 @@ export default function Login({
             <Form
                 {...store.form()}
                 resetOnSuccess={['password']}
-                className="flex flex-col gap-6"
+                className="flex flex-col gap-4 sm:gap-6"
             >
                 {({ processing, errors }) => (
                     <>
-                        <div className="grid gap-6">
+                        <div className="grid gap-4 sm:gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email address</Label>
                                 <Input
@@ -53,12 +53,12 @@ export default function Login({
                             </div>
 
                             <div className="grid gap-2">
-                                <div className="flex items-center">
+                                <div className="flex flex-wrap items-center gap-1">
                                     <Label htmlFor="password">Password</Label>
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
-                                            className="ml-auto text-sm"
+                                            className="ml-auto text-xs sm:text-sm"
                                             tabIndex={5}
                                         >
                                             Forgot password?
@@ -88,7 +88,7 @@ export default function Login({
 
                             <Button
                                 type="submit"
-                                className="mt-4 w-full"
+                                className="mt-2 w-full sm:mt-4"
                                 tabIndex={4}
                                 disabled={processing}
                                 data-test="login-button"
@@ -99,7 +99,7 @@ export default function Login({
                         </div>
 
                         {canRegister && (
-                            <div className="text-center text-sm text-muted-foreground">
+                            <div className="text-center text-xs text-muted-foreground sm:text-sm">
                                 Don't have an account?{' '}
                                 <TextLink href={register()} tabIndex={5}>
                                     Sign up
@@ -111,7 +111,7 @@ export default function Login({
             </Form>
 
             {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
+                <div className="mb-4 text-center text-xs font-medium text-green-600 sm:text-sm">
                     {status}
                 </div>
             )}
