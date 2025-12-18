@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Camera, RotateCcw, X } from 'lucide-react';
+import cv from '@techstark/opencv-js';
+
 
 interface Props {
   documentType: string;
@@ -15,36 +17,31 @@ export default function CameraModal({ documentType, onCapture, onClose }: Props)
 
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [currentDeviceId, setCurrentDeviceId] = useState<string | null>(null);
-  const [isReady, setIsReady] = useState(false);
+  const [ready, setReady] = useState(false);
+  const overlayRef = useRef<HTMLCanvasElement>(null);
 
-  /* ================= LOAD CAMERAS ================= */
+
+  /* ================= CAMERA SETUP ================= */
 
   useEffect(() => {
-    const loadDevices = async () => {
-      await navigator.mediaDevices.getUserMedia({ video: true }); // permission
-      const allDevices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = allDevices.filter(d => d.kind === 'videoinput');
+    (async () => {
+      await navigator.mediaDevices.getUserMedia({ video: true });
+      const all = await navigator.mediaDevices.enumerateDevices();
+      const cams = all.filter(d => d.kind === 'videoinput');
 
-      setDevices(videoDevices);
+      setDevices(cams);
 
-      // priorité caméra arrière
-      const backCamera =
-        videoDevices.find(d =>
-          /back|rear|environment/i.test(d.label)
-        ) || videoDevices[0];
+      const back =
+        cams.find(d => /back|rear|environment/i.test(d.label)) || cams[0];
 
-      setCurrentDeviceId(backCamera?.deviceId ?? null);
-    };
-
-    loadDevices();
+      setCurrentDeviceId(back?.deviceId ?? null);
+    })();
   }, []);
 
-  /* ================= START CAMERA ================= */
-
   useEffect(() => {
-    const startCamera = async () => {
-      if (!currentDeviceId) return;
+    if (!currentDeviceId) return;
 
+    (async () => {
       streamRef.current?.getTracks().forEach(t => t.stop());
 
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -56,119 +53,241 @@ export default function CameraModal({ documentType, onCapture, onClose }: Props)
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
-        setIsReady(true);
+        setReady(true);
       }
-    };
-
-    startCamera();
+    })();
 
     return () => {
       streamRef.current?.getTracks().forEach(t => t.stop());
     };
   }, [currentDeviceId]);
 
-  /* ================= SWITCH CAMERA ================= */
+  useEffect(() => {
+  if (!ready) return;
+
+  let rafId: number;
+
+  const processFrame = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const overlay = overlayRef.current;
+
+    if (!video || !canvas || !overlay) {
+      rafId = requestAnimationFrame(processFrame);
+      return;
+    }
+
+    const w = video.videoWidth;
+    const h = video.videoHeight;
+    if (!w || !h) {
+      rafId = requestAnimationFrame(processFrame);
+      return;
+    }
+
+    canvas.width = w;
+    canvas.height = h;
+    overlay.width = w;
+    overlay.height = h;
+
+    const ctx = canvas.getContext('2d')!;
+    const octx = overlay.getContext('2d')!;
+    octx.clearRect(0, 0, w, h);
+
+    ctx.drawImage(video, 0, 0, w, h);
+
+    const src = cv.imread(canvas);
+    const gray = new cv.Mat();
+    const blurred = new cv.Mat();
+    const edges = new cv.Mat();
+    const contours = new cv.MatVector();
+    const hierarchy = new cv.Mat();
+
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+    cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
+    cv.Canny(blurred, edges, 75, 200);
+
+    cv.findContours(
+      edges,
+      contours,
+      hierarchy,
+      cv.RETR_EXTERNAL,
+      cv.CHAIN_APPROX_SIMPLE
+    );
+
+    let bestRect: cv.Rect | null = null;
+    let maxArea = 0;
+
+    for (let i = 0; i < contours.size(); i++) {
+      const cnt = contours.get(i);
+      const rect = cv.boundingRect(cnt);
+      const area = rect.width * rect.height;
+
+      // évite les faux positifs trop petits
+      if (area > maxArea && area > w * h * 0.2) {
+        maxArea = area;
+        bestRect = rect;
+      }
+    }
+
+    // 🔥 Dessin LIVE du contour détecté
+    if (bestRect) {
+      octx.strokeStyle = '#00ff99';
+      octx.lineWidth = 3;
+      octx.strokeRect(
+        bestRect.x,
+        bestRect.y,
+        bestRect.width,
+        bestRect.height
+      );
+    }
+
+    src.delete();
+    gray.delete();
+    blurred.delete();
+    edges.delete();
+    contours.delete();
+    hierarchy.delete();
+
+    rafId = requestAnimationFrame(processFrame);
+  };
+
+  rafId = requestAnimationFrame(processFrame);
+
+  return () => cancelAnimationFrame(rafId);
+}, [ready]);
+
 
   const switchCamera = () => {
     if (devices.length < 2 || !currentDeviceId) return;
-
-    const index = devices.findIndex(d => d.deviceId === currentDeviceId);
-    const next = devices[(index + 1) % devices.length];
-
-    setCurrentDeviceId(next.deviceId);
+    const i = devices.findIndex(d => d.deviceId === currentDeviceId);
+    setCurrentDeviceId(devices[(i + 1) % devices.length].deviceId);
   };
 
-  /* ================= DOCUMENT RATIO ================= */
-
-  const aspectRatio =
-    documentType === 'Passport' ? 1.42 :
-    documentType === 'ID Card' ? 1.58 :
-    1.6;
-
-  /* ================= CAPTURE ================= */
+  /* ================= OPENCV AUTO CAPTURE ================= */
 
   const capture = () => {
-    if (!videoRef.current || !canvasRef.current) return;
+  const video = videoRef.current;
+  const canvas = canvasRef.current;
+  if (!video || !canvas) return;
 
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
 
-    const frameWidth = video.videoWidth * 0.8;
-    const frameHeight = frameWidth / aspectRatio;
+  const ctx = canvas.getContext('2d')!;
+  ctx.drawImage(video, 0, 0);
 
-    const sx = (video.videoWidth - frameWidth) / 2;
-    const sy = (video.videoHeight - frameHeight) / 2;
+  const src = cv.imread(canvas);
+  const gray = new cv.Mat();
+  const blurred = new cv.Mat();
+  const edges = new cv.Mat();
+  const contours = new cv.MatVector();
+  const hierarchy = new cv.Mat();
 
-    canvas.width = frameWidth;
-    canvas.height = frameHeight;
+  cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+  cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
+  cv.Canny(blurred, edges, 75, 200);
 
-    ctx.drawImage(
-      video,
-      sx,
-      sy,
-      frameWidth,
-      frameHeight,
-      0,
-      0,
-      frameWidth,
-      frameHeight
-    );
+  cv.findContours(
+    edges,
+    contours,
+    hierarchy,
+    cv.RETR_EXTERNAL,
+    cv.CHAIN_APPROX_SIMPLE
+  );
 
-    canvas.toBlob(blob => {
-      if (!blob) return;
+  let bestRect = null;
+  let maxArea = 0;
+
+  for (let i = 0; i < contours.size(); i++) {
+    const cnt = contours.get(i);
+    const rect = cv.boundingRect(cnt);
+    const area = rect.width * rect.height;
+
+    if (area > maxArea) {
+      maxArea = area;
+      bestRect = rect;
+    }
+  }
+
+  if (!bestRect) {
+    src.delete();
+    return;
+  }
+
+  const cropped = ctx.getImageData(
+    bestRect.x,
+    bestRect.y,
+    bestRect.width,
+    bestRect.height
+  );
+
+  canvas.width = bestRect.width;
+  canvas.height = bestRect.height;
+  ctx.putImageData(cropped, 0, 0);
+
+  canvas.toBlob(blob => {
+    if (blob) {
       onCapture(new File([blob], 'document.jpg', { type: 'image/jpeg' }));
-    }, 'image/jpeg', 0.95);
-  };
+    }
+  }, 'image/jpeg', 0.95);
+
+  src.delete();
+  gray.delete();
+  blurred.delete();
+  edges.delete();
+  contours.delete();
+  hierarchy.delete();
+};
+
 
   /* ================= UI ================= */
 
   return (
-    <div className="fixed inset-0 z-50 bg-black">
-      <video
-        ref={videoRef}
-        playsInline
-        muted
-        autoPlay
-        className="absolute inset-0 h-full w-full object-cover"
-      />
-
-      {/* OVERLAY */}
-      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-        <div
-          className="border-4 border-green-400 rounded-lg w-[80%]"
-          style={{ aspectRatio }}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+      <div className="
+        relative bg-black overflow-hidden
+        w-full h-full
+        sm:rounded-2xl sm:max-w-xl sm:h-[80vh]
+      ">
+        <video
+          ref={videoRef}
+          playsInline
+          muted
+          autoPlay
+          className="absolute inset-0 h-full w-full object-cover"
         />
-      </div>
 
-      <canvas ref={canvasRef} className="hidden" />
+        <canvas ref={canvasRef} className="hidden" />
 
-      {/* TOP BAR */}
-      <div className="absolute top-4 right-4">
-        <Button size="icon" variant="ghost" onClick={onClose}>
-          <X className="text-white" />
-        </Button>
-      </div>
+        <canvas
+          ref={overlayRef}
+          className="absolute inset-0 z-10 pointer-events-none"
+        />
 
-      {/* CONTROLS */}
-      <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-6">
-        <Button
-          variant="secondary"
-          size="icon"
-          onClick={switchCamera}
-        >
-          <RotateCcw />
-        </Button>
+        <canvas ref={canvasRef} className="hidden" />
 
-        <Button
-          size="lg"
-          disabled={!isReady}
-          onClick={capture}
-          className="rounded-full h-16 w-16"
-        >
-          <Camera />
-        </Button>
+        {/* TOP BAR */}
+        <div className="absolute top-3 right-3 z-10">
+          <Button size="icon" variant="ghost" onClick={onClose}>
+            <X className="text-white" />
+          </Button>
+        </div>
+
+        {/* CONTROLS */}
+        <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-6 z-10">
+          <Button variant="secondary" size="icon" onClick={switchCamera}>
+            <RotateCcw />
+          </Button>
+
+          <Button
+            size="lg"
+            disabled={!ready}
+            onClick={capture}
+            className="rounded-full h-16 w-16"
+          >
+            <Camera />
+          </Button>
+        </div>
       </div>
     </div>
   );
