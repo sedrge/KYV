@@ -11,7 +11,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { SharedData, type NavItem } from '@/types';
+import { NavItemWithSubMenu, SharedData, type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { BuildingIcon, ChartBarIcon, LayoutGrid, LockIcon, SettingsIcon, ShieldIcon, Users2Icon, FileText } from 'lucide-react';
 import AppLogo from './app-logo';
@@ -24,53 +24,68 @@ import PermissionController from '@/actions/App/Http/Controllers/PermissionContr
 import AuditController from '@/actions/App/Http/Controllers/AuditController';
 import VisitorController from '@/actions/App/Http/Controllers/VisitorController';
 
-const mainNavItems: NavItem[] = [
+const mainNavItems: NavItemWithSubMenu[] = [
     {
         title: 'Dashboard',
         href: dashboard(),
         icon: ChartBarIcon,
     },
     {
-        title: 'Configurations',
-        href: ConfigController.index(),
-        icon: SettingsIcon,
-    },
-    {
-        title: 'Places',
-        href: PlaceController.index(),
-        icon: BuildingIcon,
-    },
-    {
-        title: 'Types of Places',
-        href: TypePlaceController.index(),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Users',
-        href: UserController.index(),
-        icon: Users2Icon,
-    },
+        'title': 'Parameters',
+        items: [{
+            title: 'Configurations',
+            href: ConfigController.index(),
+            icon: SettingsIcon,
+        },
 
+        {
+            title: 'Places',
+            href: PlaceController.index(),
+            icon: BuildingIcon,
+        },
+        {
+            title: 'Types of Places',
+            href: TypePlaceController.index(),
+            icon: LayoutGrid,
+        },
+
+        ],
+    },
+    {
+        'title': 'Utilisateurs',
+        items: [{
+            title: 'Users',
+            href: UserController.index(),
+            icon: Users2Icon,
+        },
+        {
+            title: 'Roles',
+            href: RoleController.index(),
+            icon: ShieldIcon,
+        },
+        {
+            title: 'Permissions',
+            href: PermissionController.index(),
+            icon: LockIcon,
+        },
+
+        ],
+    },
+    {
+        'title': 'Audites',
+        items: [
+            {
+                title: 'Audits',
+                href: AuditController.index(),
+                icon: FileText,
+            },
+
+        ],
+    },
     {
         title: 'Visitors',
         href: VisitorController.index(),
         icon: Users2Icon,
-    },
-
-    {
-        title: 'Roles',
-        href: RoleController.index(),
-        icon: ShieldIcon,
-    },
-    {
-        title: 'Permissions',
-        href: PermissionController.index(),
-        icon: LockIcon,
-    },
-    {
-        title: 'Audits',
-        href: AuditController.index(),
-        icon: FileText,
     },
 ];
 

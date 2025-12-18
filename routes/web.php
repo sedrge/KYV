@@ -11,6 +11,8 @@ use App\Http\Controllers\VisitorController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
+use App\Http\Controllers\MrzController;
+
 
 Route::get('/', function () {
     return Inertia::render('welcome', [
@@ -39,5 +41,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/{id}', [AuditController::class, 'show'])->name('show');
     });
 });
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/mrz', [MrzController::class, 'index'])->name('mrz.index');
+    Route::post('/mrz/parse', [MrzController::class, 'parse'])->name('mrz.parse');
+});
+
 
 require __DIR__.'/settings.php';
