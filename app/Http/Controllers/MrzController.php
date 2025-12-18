@@ -10,7 +10,8 @@ class MrzController extends Controller
 {
     public function index()
     {
-        return Inertia::render('MrzScan');
+        //return Inertia::render('MrzScan');
+        return Inertia::render('MrzCamera');
     }
 
     public function parse(Request $request)
