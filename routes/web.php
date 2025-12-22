@@ -1,17 +1,18 @@
 <?php
 
-use App\Http\Controllers\AuditController;
-use App\Http\Controllers\ConfigController;
-use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\PlaceController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\TypePlaceController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\VisitorController;
-use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MrzController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\AuditController;
+use App\Http\Controllers\PlaceController;
+use App\Http\Controllers\ConfigController;
+use App\Http\Controllers\VisitorController;
+use App\Http\Controllers\TypePlaceController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\PassportOCRController;
 
 
 Route::get('/', function () {
@@ -46,6 +47,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('/mrz', [MrzController::class, 'index'])->name('mrz.index');
     Route::post('/mrz/parse', [MrzController::class, 'parse'])->name('mrz.parse');
+    // routes/web.php
+    Route::post('/ocr/process', [PassportOCRController::class, 'process'])->name('ocr.process');
+
 });
 
 

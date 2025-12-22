@@ -1,8 +1,9 @@
 <?php
 
-use App\Http\Controllers\Api\ConfigController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\ConfigController;
+use App\Http\Controllers\PassportOCRController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -16,3 +17,4 @@ Route::prefix('config')->group(function () {
     Route::put('/{placeId}', [ConfigController::class, 'update']);
     Route::delete('/{placeId}', [ConfigController::class, 'destroy']);
 });
+

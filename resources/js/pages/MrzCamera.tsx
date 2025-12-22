@@ -1,195 +1,160 @@
-import React, { useEffect, useRef, useState } from "react";
-import { createWorker, PSM } from "tesseract.js";
-import { parse as parseMRZ } from "mrz";
+import React, { useRef, useEffect, useState } from 'react';
+import axios from 'axios';
+import { Camera, RefreshCw } from 'lucide-react';
 
-export default function MrzTestCamera() {
+interface MrzFields {
+  [key: string]: string | undefined;
+}
+
+export default function MrzCameraModal({ onResult }: { onResult: (data: any) => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  const [worker, setWorker] = useState<any>(null);
-  const [ocrText, setOcrText] = useState("");
-  const [mrzText, setMrzText] = useState("");
-  const [status, setStatus] = useState("Initialisation...");
+  const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [scanStatus, setScanStatus] = useState<string>('Prêt à scanner');
+  const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
 
-  /* 🎥 CAMERA */
-  useEffect(() => {
-    const initCamera = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" } },
-        });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
-          setStatus("Caméra prête");
-        }
-      } catch {
-        setError("Accès caméra impossible");
-      }
-    };
-
-    initCamera();
-    return () => {
+  // Initialisation caméra
+  const initCamera = async (deviceId?: string) => {
+    try {
       if (videoRef.current?.srcObject) {
-        (videoRef.current.srcObject as MediaStream).getTracks().forEach((t) => t.stop());
+        (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
       }
-    };
-  }, []);
+      const constraints = deviceId 
+        ? { video: { deviceId: { exact: deviceId } } }
+        : { video: { facingMode: 'environment', width: 1280, height: 720 } };
 
-  /* 🔤 TESSERACT v5+ (CORRIGÉ) */
-  useEffect(() => {
-    let cancelled = false;
-    let w: any = null;
-
-    const initWorker = async () => {
-      try {
-        setStatus("Chargement OCR...");
-
-        w = await createWorker();         // ✅ v5+ : pas de logger ici
-        await w.load();                   // ✅ obligatoire avant loadLanguage/initialize
-
-        // ✅ OCR-B si disponible, sinon fallback eng
-        const primaryLang = "ocrb";
-        const fallbackLang = "eng";
-
-        try {
-          await w.loadLanguage(primaryLang);
-          await w.initialize(primaryLang);
-        } catch {
-          await w.loadLanguage(fallbackLang);
-          await w.initialize(fallbackLang);
-        }
-
-        // ✅ Paramètres MRZ
-        await w.setParameters({
-          tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<",
-          tessedit_pageseg_mode: String(PSM.SINGLE_LINE),
-          user_defined_dpi: "300",
-          preserve_interword_spaces: "1",
-        });
-
-        if (!cancelled) {
-          setWorker(w);
-          setStatus("OCR prêt");
-        } else {
-          await w.terminate();
-        }
-      } catch (e) {
-        if (!cancelled) setError("Impossible d'initialiser Tesseract");
-        if (w) await w.terminate();
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
       }
-    };
-
-    initWorker();
-
-    return () => {
-      cancelled = true;
-      if (w) {
-        // ✅ fermeture propre
-        w.terminate();
-      }
-    };
-  }, []);
-
-    function preprocessCanvas(canvas: HTMLCanvasElement) {
-    const ctx = canvas.getContext("2d")!;
-    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const d = img.data;
-
-    for (let i = 0; i < d.length; i += 4) {
-      const gray = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
-      const v = gray > 140 ? 255 : 0;
-      d[i] = d[i + 1] = d[i + 2] = v;
-    }
-    ctx.putImageData(img, 0, 0);
-  }
-
-    function normalizeMRZLine(line: string, target: number) {
-    return line
-      .toUpperCase()
-      .replace(/[^A-Z0-9<]/g, "")
-      .replace(/O/g, "0")
-      .replace(/I/g, "1")
-      .replace(/B/g, "8")
-      .replace(/S/g, "5")
-      .replace(/C/g, "<")
-      .padEnd(target, "<")
-      .slice(0, target);
-  }
-
-    const captureAndScan = async () => {
-    if (!videoRef.current || !canvasRef.current || !worker) return;
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d")!;
-
-    const cropW = video.videoWidth * 0.9;
-    const cropH = video.videoHeight * 0.28;
-    const cropX = (video.videoWidth - cropW) / 2;
-    const cropY = video.videoHeight - cropH - 20;
-
-    const scale = 3;
-    canvas.width = cropW * scale;
-    canvas.height = cropH * scale;
-
-    ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, canvas.width, canvas.height);
-    preprocessCanvas(canvas);
-
-    setStatus("OCR MRZ…");
-
-    const { data } = await worker.recognize(canvas);
-    const raw = data?.text || "";
-    setOcrText(raw);
-
-    const lines = raw
-      .split("\n")
-      .map((l: string) => l.trim())
-      .filter((l: string) => l.includes("<"));
-
-    if (lines.length >= 2) {
-      const l1 = normalizeMRZLine(lines[0], 44);
-      const l2 = normalizeMRZLine(lines[1], 44);
-      const mrz = `${l1}\n${l2}`;
-
-      setMrzText(mrz);
-
-      try {
-        const parsed = parseMRZ(mrz);
-        setStatus(parsed.valid ? "MRZ VALIDE ✅" : "MRZ invalide ❌");
-      } catch {
-        setStatus("MRZ illisible");
-      }
-    } else {
-      setMrzText("");
-      setStatus("MRZ non détectée");
+    } catch (err) {
+      setError('Erreur caméra : Vérifiez les permissions.');
     }
   };
 
-    return (
-    <div className="p-4 space-y-4">
-      <video ref={videoRef} className="w-full max-w-md border rounded" muted playsInline />
+  useEffect(() => {
+    navigator.mediaDevices.enumerateDevices().then(devices => {
+      const videoInput = devices.filter(d => d.kind === 'videoinput');
+      setVideoDevices(videoInput);
+      if (videoInput.length > 0) setSelectedDeviceId(videoInput[0].deviceId);
+    });
+  }, []);
 
-      <button onClick={captureAndScan} className="px-4 py-2 bg-black text-white rounded">
-        Capturer & Scanner MRZ
-      </button>
+  useEffect(() => {
+    initCamera(selectedDeviceId || undefined);
+  }, [selectedDeviceId]);
 
-      <canvas ref={canvasRef} className="w-full max-w-md border-2 border-green-500" />
+  // FONCTION CLÉ : Capture l'image et l'envoie au serveur
+  const captureAndScan = async () => {
+    if (!videoRef.current || !canvasRef.current || isScanning) return;
 
-      <div className="bg-gray-100 p-3 text-sm rounded">
-        <strong>OCR brut :</strong>
-        <pre className="whitespace-pre-wrap">{ocrText || "—"}</pre>
+    setIsScanning(true);
+    setScanStatus('Analyse par l\'IA en cours...');
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+
+    // On capture la frame actuelle
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context?.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Conversion en Blob pour l'envoi
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+
+      const formData = new FormData();
+      formData.append('image', blob, 'scan.jpg');
+
+      try {
+        // APPEL À VOTRE API LARAVEL
+        const response = await axios.post('/ocr/process', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        if (response.data.status === 'success') {
+          setScanStatus('Document validé !');
+          onResult(response.data.data); // Renvoie le JSON structuré
+        } else {
+          setScanStatus('Erreur : Zone MRZ illisible. Réessayez.');
+        }
+      } catch (err) {
+        setScanStatus('Erreur de connexion au serveur.');
+      } finally {
+        setIsScanning(false);
+      }
+    }, 'image/jpeg', 0.9);
+  };
+
+  return (
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-black/80 z-50 p-4">
+      
+      {/* Sélecteur de caméra */}
+      {videoDevices.length > 1 && (
+        <button 
+          className="mb-4 p-3 bg-white/10 text-white rounded-full hover:bg-white/20 transition"
+          onClick={() => {
+            const idx = videoDevices.findIndex(d => d.deviceId === selectedDeviceId);
+            setSelectedDeviceId(videoDevices[(idx + 1) % videoDevices.length].deviceId);
+          }}
+        >
+          <RefreshCw size={24} />
+        </button>
+      )}
+
+      {/* Fenêtre de scan avec l'animation */}
+      <div className="relative overflow-hidden border-4 border-green-500 rounded-xl shadow-2xl bg-black"
+           style={{ width: '100%', maxWidth: '500px', aspectRatio: '1.6' }}>
+        
+        <video
+          ref={videoRef}
+          className="w-full h-full object-cover"
+          playsInline autoPlay muted
+        />
+
+        {/* L'animation de la barre de scan qui descend (simulé) */}
+        <div className="absolute top-0 w-full h-[2px] bg-green-400 shadow-[0_0_15px_rgba(74,222,128,1)] animate-scan-line" />
+        
+        {/* Overlay d'analyse */}
+        {isScanning && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+          </div>
+        )}
       </div>
 
-      <div className="bg-gray-100 p-3 text-sm rounded">
-        <strong>MRZ :</strong>
-        <pre>{mrzText || "—"}</pre>
+      {/* Status et Bouton Action */}
+      <div className="mt-6 flex flex-col items-center space-y-4 w-full max-w-sm">
+        <div className="bg-white/90 backdrop-blur px-6 py-2 rounded-full shadow-lg">
+          <p className="text-gray-800 font-bold text-center">{scanStatus}</p>
+        </div>
+
+        <button
+          onClick={captureAndScan}
+          disabled={isScanning}
+          className={`flex items-center space-x-2 px-8 py-4 rounded-xl font-bold text-white transition-all ${
+            isScanning ? 'bg-gray-500' : 'bg-green-600 hover:bg-green-500 active:scale-95'
+          }`}
+        >
+          <Camera size={24} />
+          <span>{isScanning ? 'ANALYSE...' : 'SCANNER MAINTENANT'}</span>
+        </button>
       </div>
 
-      <p className="font-semibold">{status}</p>
-      {error && <p className="text-red-600">{error}</p>}
+      <canvas ref={canvasRef} className="hidden" />
+
+      <style>{`
+        @keyframes scan-line {
+          0% { top: 0%; }
+          100% { top: 100%; }
+        }
+        .animate-scan-line {
+          animation: scan-line 2s linear infinite;
+        }
+      `}</style>
     </div>
   );
 }
-
