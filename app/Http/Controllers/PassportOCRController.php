@@ -5,67 +5,81 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class PassportOCRController extends Controller
 {
-    public function process12(Request $request)
+    public function process(Request $request)
     {
-        // 1. Validation de l'image
         $request->validate([
-            'image' => 'required|image|mimes:jpg,jpeg,png|max:5120',
+            'image' => 'required|image|max:10240',
         ]);
 
-        // 2. Stockage temporaire de l'image
-        $path = $request->file('image')->store('temp_ocr');
-        $fullPath = storage_path('app/' . $path);
+        try {
+            $path = $request->file('image')->store('temp_ocr');
+            
+            // Correction chemin : On s'assure que le chemin est compatible Windows
+            $fullPath = str_replace('/', DIRECTORY_SEPARATOR, storage_path('app/private/' . $path));
 
-        // 3. Appel du script Python (adapter les chemins)
-        // Note : On utilise l'exécutable python du venv
-        $pythonPath = "C:/Users/User/Desktop/KYV/ocr/venv/Scripts/python.exe";
-        $scriptPath = "C:/Users/User/Desktop/KYV/ocr/ocr.py";
+            // ... 
+            $python = "C:/Users/User/Desktop/KYV/ocr/venv/Scripts/python.exe";
+            $script = "C:/Users/User/Desktop/KYV/ocr/ocr.py";
 
-        $result = Process::run("$pythonPath $scriptPath $fullPath");
+            // On définit manuellement les dossiers de l'utilisateur "User"
+            $userPath = "C:/Users/User"; 
 
-        // 4. Suppression de l'image temporaire
-        Storage::delete($path);
+            $env = [
+                'SYSTEMROOT' => getenv('SYSTEMROOT'),
+                'PATH' => getenv('PATH'),
+                'PYTHONIOENCODING' => 'utf-8',
+                'HOME' => $userPath,
+                'USERPROFILE' => $userPath,
+                'HOMEDRIVE' => 'C:',
+                'HOMEPATH' => '/Users/User',
+                'MODELSCOPE_CACHE' => $userPath . '/.cache/modelscope', // Pour éviter l'erreur modelscope
+            ];
 
-        // 5. Retour du JSON à React
-        if ($result->successful()) {
-            return response()->json(json_decode($result->output()));
-        }
+            // Utilisation de env() pour injecter ces variables
+            $result = Process::env($env)->run("\"$python\" \"$script\" \"$fullPath\"");
+// ...
 
-        return response()->json(['status' => 'error', 'message' => 'Erreur lors du scan'], 500);
-    }
+            // ------------------------
 
-    public function process(Request $request)
-{
-    try {
-        $path = $request->file('image')->store('temp_ocr');
-        $fullPath = storage_path('app/' . $path);
+            Storage::delete($path);
 
-        $pythonPath = "C:\\Users\\User\\Desktop\\KYV\\ocr\\venv\\Scripts\\python.exe";
-        $scriptPath = "C:\\Users\\User\\Desktop\\KYV\\ocr\\ocr.py";
+            $output = $result->output();
+            $errorOutput = $result->errorOutput();
 
-        // On utilise run() et on capture la sortie
-        $result = Process::run("$pythonPath $scriptPath $fullPath");
+            $cleanOutput = mb_convert_encoding($output, 'UTF-8', 'UTF-8');
+            $cleanError = mb_convert_encoding($errorOutput, 'UTF-8', 'UTF-8');
 
-        // Supprimer le fichier après usage
-        Storage::delete($path);
+            if (!$result->successful()) {
+                Log::error("Erreur Python OCR: " . $cleanError);
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Le script OCR a échoué',
+                    'debug' => $cleanError
+                ], 500);
+            }
 
-        if (!$result->successful()) {
-            // Renvoie l'erreur Python réelle à React pour débugger
+            $data = json_decode($cleanOutput, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Réponse JSON invalide',
+                    'raw' => $cleanOutput
+                ], 500);
+            }
+
+            return response()->json($data);
+
+        } catch (\Exception $e) {
+            Log::error("Exception OCR: " . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'error' => $result->errorOutput(), // Très important pour voir l'erreur Python
-                'output' => $result->output()
+                'message' => 'Erreur serveur : ' . $e->getMessage()
             ], 500);
         }
-
-        return response()->json(json_decode($result->output()));
-
-    } catch (\Exception $e) {
-        return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
     }
-}
-
 }
