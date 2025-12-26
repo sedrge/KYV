@@ -1,19 +1,19 @@
 <?php
 
+use App\Http\Controllers\AuditController;
+use App\Http\Controllers\ConfigController;
+use App\Http\Controllers\MrzController;
+use App\Http\Controllers\PassportOCRController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\PlaceController;
+use App\Http\Controllers\QrCodeController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\TypePlaceController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\VisitorController;
+use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\MrzController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\AuditController;
-use App\Http\Controllers\PlaceController;
-use App\Http\Controllers\ConfigController;
-use App\Http\Controllers\VisitorController;
-use App\Http\Controllers\TypePlaceController;
-use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\PassportOCRController;
-
 
 Route::get('/', function () {
     return Inertia::render('welcome', [
@@ -33,6 +33,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('roles', RoleController::class);
     Route::resource('permissions', PermissionController::class);
     Route::resource('visitors', VisitorController::class);
+    Route::resource('qr-codes', QrCodeController::class);
+
+    Route::prefix('qr-codes')->name('qr-codes.')->group(function () {
+        Route::get('/{qr_code}/download', [QrCodeController::class, 'download'])->name('download');
+        Route::get('/{qr_code}/generate', [QrCodeController::class, 'generate'])->name('generate');
+        Route::get('/{qr_code}/print', [QrCodeController::class, 'print'])->name('print');
+    });
 
     Route::prefix('audits')->name('audits.')->group(function () {
         Route::get('/', [AuditController::class, 'index'])->name('index');
@@ -52,10 +59,9 @@ Route::middleware(['auth'])->group(function () {
 
 });
 */
-    Route::get('/mrz', [MrzController::class, 'index'])->name('mrz.index');
-    Route::post('/mrz/parse', [MrzController::class, 'parse'])->name('mrz.parse');
-    // routes/web.php
-    Route::post('/ocr/process', [PassportOCRController::class, 'process'])->name('ocr.process');
+Route::get('/mrz', [MrzController::class, 'index'])->name('mrz.index');
+Route::post('/mrz/parse', [MrzController::class, 'parse'])->name('mrz.parse');
+// routes/web.php
+Route::post('/ocr/process', [PassportOCRController::class, 'process'])->name('ocr.process');
 
- 
 require __DIR__.'/settings.php';
