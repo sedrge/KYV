@@ -43,7 +43,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-
+/*
 Route::middleware(['auth'])->group(function () {
     Route::get('/mrz', [MrzController::class, 'index'])->name('mrz.index');
     Route::post('/mrz/parse', [MrzController::class, 'parse'])->name('mrz.parse');
@@ -51,6 +51,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/ocr/process', [PassportOCRController::class, 'process'])->name('ocr.process');
 
 });
+*/
+    Route::get('/mrz', [MrzController::class, 'index'])->name('mrz.index');
+    Route::post('/mrz/parse', [MrzController::class, 'parse'])->name('mrz.parse');
+    // routes/web.php
+    Route::post('/ocr/process', [PassportOCRController::class, 'process'])->name('ocr.process');
 
  
 require __DIR__.'/settings.php';
