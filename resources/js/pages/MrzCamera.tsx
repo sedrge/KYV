@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import MrzCameraModal from './MrzCameraModal'; // Assurez-vous que le chemin est correct
+import MrzCameraModal from './MrzCameraModal';
 
 export default function TestOcrPage() {
     const [showScanner, setShowScanner] = useState(false);
-    
+
     // État local simple pour tester le pré-remplissage
     const [formData, setFormData] = useState({
         document_number: '',
@@ -43,8 +43,8 @@ export default function TestOcrPage() {
     return (
         <div style={{ padding: '40px', fontFamily: 'sans-serif', maxWidth: '600px', margin: '0 auto' }}>
             <h1 style={{ color: '#333' }}>Test Pré-remplissage OCR</h1>
-            
-            <button 
+
+            <button
                 onClick={() => setShowScanner(true)}
                 style={{
                     backgroundColor: '#2563eb',
@@ -67,51 +67,51 @@ export default function TestOcrPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <div>
                     <label style={{ display: 'block', fontWeight: 'bold' }}>N° Document :</label>
-                    <input 
-                        type="text" 
-                        value={formData.document_number} 
-                        readOnly 
-                        style={{ width: '100%', padding: '8px', backgroundColor: '#f3f4f6' }} 
+                    <input
+                        type="text"
+                        value={formData.document_number}
+                        readOnly
+                        style={{ width: '100%', padding: '8px', backgroundColor: '#f3f4f6' }}
                     />
                 </div>
 
                 <div>
                     <label style={{ display: 'block', fontWeight: 'bold' }}>Nom :</label>
-                    <input 
-                        type="text" 
-                        value={formData.surname} 
-                        readOnly 
-                        style={{ width: '100%', padding: '8px', backgroundColor: '#f3f4f6' }} 
+                    <input
+                        type="text"
+                        value={formData.surname}
+                        readOnly
+                        style={{ width: '100%', padding: '8px', backgroundColor: '#f3f4f6' }}
                     />
                 </div>
 
                 <div>
                     <label style={{ display: 'block', fontWeight: 'bold' }}>Prénom :</label>
-                    <input 
-                        type="text" 
-                        value={formData.name} 
-                        readOnly 
-                        style={{ width: '100%', padding: '8px', backgroundColor: '#f3f4f6' }} 
+                    <input
+                        type="text"
+                        value={formData.name}
+                        readOnly
+                        style={{ width: '100%', padding: '8px', backgroundColor: '#f3f4f6' }}
                     />
                 </div>
 
                 <div>
                     <label style={{ display: 'block', fontWeight: 'bold' }}>Date de naissance :</label>
-                    <input 
-                        type="text" 
-                        value={formData.birth_date} 
-                        readOnly 
-                        style={{ width: '100%', padding: '8px', backgroundColor: '#f3f4f6' }} 
+                    <input
+                        type="text"
+                        value={formData.birth_date}
+                        readOnly
+                        style={{ width: '100%', padding: '8px', backgroundColor: '#f3f4f6' }}
                     />
                 </div>
 
                 <div>
                     <label style={{ display: 'block', fontWeight: 'bold' }}>Sexe :</label>
-                    <input 
-                        type="text" 
-                        value={formData.sex} 
-                        readOnly 
-                        style={{ width: '100%', padding: '8px', backgroundColor: '#f3f4f6' }} 
+                    <input
+                        type="text"
+                        value={formData.sex}
+                        readOnly
+                        style={{ width: '100%', padding: '8px', backgroundColor: '#f3f4f6' }}
                     />
                 </div>
             </div>
