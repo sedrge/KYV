@@ -6,6 +6,7 @@ use App\Http\Requests\StorePlaceRequest;
 use App\Http\Requests\UpdatePlaceRequest;
 use App\Models\Place;
 use App\Models\TypePlace;
+use App\Services\PlaceQrCodeService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -36,9 +37,12 @@ class PlaceController extends Controller
         ]);
     }
 
-    public function store(StorePlaceRequest $request): RedirectResponse
+    public function store(StorePlaceRequest $request, PlaceQrCodeService $qrCodeService): RedirectResponse
     {
-        Place::create([...$request->validated(), 'is_active' => $request->has('is_active') && $request->input('is_active') === 'on' ? true : false]);
+        $place = Place::create([...$request->validated(), 'is_active' => $request->has('is_active') && $request->input('is_active') === 'on' ? true : false]);
+
+        $qrCodePath = $qrCodeService->generateQrCodeForPlace($place);
+        $place->update(['qr_code_path' => $qrCodePath]);
 
         return redirect()->route('places.index')
             ->with('success', 'Lieu créé avec succès.');
@@ -61,6 +65,8 @@ class PlaceController extends Controller
 
     public function edit(Place $place): Response
     {
+        $place->load('typePlace');
+
         $typePlaces = TypePlace::query()
             ->orderBy('name')
             ->get();
@@ -71,15 +77,21 @@ class PlaceController extends Controller
         ]);
     }
 
-    public function update(UpdatePlaceRequest $request, Place $place): RedirectResponse
+    public function update(UpdatePlaceRequest $request, Place $place, PlaceQrCodeService $qrCodeService): RedirectResponse
     {
         $place->update([...$request->validated(), 'is_active' => $request->has('is_active') && $request->input('is_active') === 'on' ? true : false]);
+
+        if ($place->qr_code_path) {
+            $qrCodeService->deleteQrCodeForPlace($place);
+        }
+        $qrCodePath = $qrCodeService->generateQrCodeForPlace($place);
+        $place->update(['qr_code_path' => $qrCodePath]);
 
         return redirect()->route('places.index')
             ->with('success', 'Lieu mis à jour avec succès.');
     }
 
-    public function destroy(Place $place): RedirectResponse
+    public function destroy(Place $place, PlaceQrCodeService $qrCodeService): RedirectResponse
     {
         if ($place->users()->exists()) {
             return redirect()->route('places.index')
@@ -91,6 +103,7 @@ class PlaceController extends Controller
                 ->with('error', 'Impossible de supprimer ce lieu car il a une configuration associée.');
         }
 
+        $qrCodeService->deleteQrCodeForPlace($place);
         $place->delete();
 
         return redirect()->route('places.index')

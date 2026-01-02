@@ -28,6 +28,7 @@ class Place extends Model
         'website',
         'rating',
         'is_active',
+        'qr_code_path',
     ];
 
     protected function casts(): array

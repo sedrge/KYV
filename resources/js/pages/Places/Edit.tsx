@@ -9,7 +9,7 @@ import AppLayout from '@/layouts/app-layout';
 import { index, update } from '@/actions/App/Http/Controllers/PlaceController';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, Form } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, QrCode, Download } from 'lucide-react';
 
 interface TypePlace {
     id: string;
@@ -30,6 +30,7 @@ interface Place {
     website?: string;
     rating?: number;
     is_active: boolean;
+    qr_code_path?: string;
 }
 
 interface Props {
@@ -40,8 +41,19 @@ interface Props {
 export default function Edit({ place, typePlaces }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Lieux', href: index().url },
-        { title: place.name },
+        { title: place.name, href: '' },
     ];
+
+    const handleDownloadQrCode = () => {
+        if (place.qr_code_path) {
+            const link = document.createElement('a');
+            link.href = `/storage/${place.qr_code_path}`;
+            link.download = `qrcode-${place.name}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -56,7 +68,8 @@ export default function Edit({ place, typePlaces }: Props) {
                         <p className="text-muted-foreground">Modifier les informations du lieu</p>
                     </div>
                 </div>
-                <Card>
+                <div className="grid gap-4 lg:grid-cols-3">
+                <Card className="lg:col-span-2">
                     <CardHeader>
                         <CardTitle>Informations du lieu</CardTitle>
                         <CardDescription>Modifiez les informations du lieu</CardDescription>
@@ -147,6 +160,39 @@ export default function Edit({ place, typePlaces }: Props) {
                         </Form>
                     </CardContent>
                 </Card>
+                {place.qr_code_path && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <QrCode className="h-5 w-5" />
+                                QR Code
+                            </CardTitle>
+                            <CardDescription>QR Code du lieu pour le formulaire visiteur</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex justify-center rounded-lg border bg-white p-4">
+                                <img
+                                    src={`/storage/${place.qr_code_path}`}
+                                    alt={`QR Code pour ${place.name}`}
+                                    className="h-48 w-48"
+                                />
+                            </div>
+                            <Button
+                                variant="outline"
+                                className="w-full"
+                                onClick={handleDownloadQrCode}
+                                type="button"
+                            >
+                                <Download className="mr-2 h-4 w-4" />
+                                Télécharger le QR Code
+                            </Button>
+                            <p className="text-center text-xs text-muted-foreground">
+                                Le QR Code sera régénéré lors de la sauvegarde
+                            </p>
+                        </CardContent>
+                    </Card>
+                )}
+                </div>
             </div>
         </AppLayout>
     );

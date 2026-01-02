@@ -6,6 +6,7 @@ use App\Http\Controllers\MrzController;
 use App\Http\Controllers\PassportOCRController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PlaceController;
+use App\Http\Controllers\PlaceVisitorFormController;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TypePlaceController;
@@ -20,6 +21,9 @@ Route::get('/', function () {
         'canRegister' => Features::enabled(Features::registration()),
     ]);
 })->name('home');
+
+Route::get('/place/{place}/visitor-form', [PlaceVisitorFormController::class, 'show'])->name('place.visitor.form');
+Route::post('/place/{place}/visitor-form', [PlaceVisitorFormController::class, 'store'])->name('place.visitor.form.store');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {

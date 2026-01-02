@@ -23,98 +23,121 @@ export default function Login({
     canRegister,
 }: LoginProps) {
     return (
-        <AuthLayout
-            title="Log in to your account"
-            description="Enter your email and password below to log in"
-        >
+        <>
             <Head title="Log in" />
 
-            <Form
-                {...store.form()}
-                resetOnSuccess={['password']}
-                className="flex flex-col gap-4 sm:gap-6"
+            {/* === Background vidéo === */}
+            <div className="fixed inset-0 -z-10 overflow-hidden">
+                <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="h-full w-full object-cover"
+                >
+                    <source src="/videos/auth_bg.mp4" type="video/mp4" />
+                </video>
+
+                {/* Overlay */}
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            </div>
+
+            <AuthLayout
+                title="Welcome back"
+                description="Access your dashboard securely"
             >
-                {({ processing, errors }) => (
-                    <>
-                        <div className="grid gap-4 sm:gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    name="email"
-                                    required
-                                    autoFocus
-                                    tabIndex={1}
-                                    autoComplete="email"
-                                    placeholder="email@example.com"
-                                />
-                                <InputError message={errors.email} />
-                            </div>
+                {/* Carte login */}
+                <div className="mx-auto w-full max-w-md rounded-2xl border border-white/20 bg-white/90 p-6 shadow-2xl backdrop-blur-xl dark:bg-black/60 sm:p-8">
+                    <Form
+                        {...store.form()}
+                        resetOnSuccess={['password']}
+                        className="flex flex-col gap-5"
+                    >
+                        {({ processing, errors }) => (
+                            <>
+                                <div className="grid gap-4">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="email">
+                                            Email address
+                                        </Label>
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            name="email"
+                                            required
+                                            autoFocus
+                                            autoComplete="email"
+                                            placeholder="email@example.com"
+                                        />
+                                        <InputError message={errors.email} />
+                                    </div>
 
-                            <div className="grid gap-2">
-                                <div className="flex flex-wrap items-center gap-1">
-                                    <Label htmlFor="password">Password</Label>
-                                    {canResetPassword && (
-                                        <TextLink
-                                            href={request()}
-                                            className="ml-auto text-xs sm:text-sm"
-                                            tabIndex={5}
-                                        >
-                                            Forgot password?
-                                        </TextLink>
-                                    )}
+                                    <div className="grid gap-2">
+                                        <div className="flex items-center">
+                                            <Label htmlFor="password">
+                                                Password
+                                            </Label>
+                                            {canResetPassword && (
+                                                <TextLink
+                                                    href={request()}
+                                                    className="ml-auto text-xs"
+                                                >
+                                                    Forgot password?
+                                                </TextLink>
+                                            )}
+                                        </div>
+                                        <Input
+                                            id="password"
+                                            type="password"
+                                            name="password"
+                                            required
+                                            autoComplete="current-password"
+                                            placeholder="••••••••"
+                                        />
+                                        <InputError
+                                            message={errors.password}
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center space-x-3">
+                                        <Checkbox
+                                            id="remember"
+                                            name="remember"
+                                        />
+                                        <Label htmlFor="remember">
+                                            Remember me
+                                        </Label>
+                                    </div>
+
+                                    <Button
+                                        type="submit"
+                                        className="mt-2 w-full"
+                                        disabled={processing}
+                                    >
+                                        {processing && <Spinner />}
+                                        Log in
+                                    </Button>
                                 </div>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    name="password"
-                                    required
-                                    tabIndex={2}
-                                    autoComplete="current-password"
-                                    placeholder="Password"
-                                />
-                                <InputError message={errors.password} />
-                            </div>
 
-                            <div className="flex items-center space-x-3">
-                                <Checkbox
-                                    id="remember"
-                                    name="remember"
-                                    tabIndex={3}
-                                />
-                                <Label htmlFor="remember">Remember me</Label>
-                            </div>
-
-                            <Button
-                                type="submit"
-                                className="mt-2 w-full sm:mt-4"
-                                tabIndex={4}
-                                disabled={processing}
-                                data-test="login-button"
-                            >
-                                {processing && <Spinner />}
-                                Log in
-                            </Button>
-                        </div>
-
-                        {canRegister && (
-                            <div className="text-center text-xs text-muted-foreground sm:text-sm">
-                                Don't have an account?{' '}
-                                <TextLink href={register()} tabIndex={5}>
-                                    Sign up
-                                </TextLink>
-                            </div>
+                                {canRegister && (
+                                    <div className="text-center text-sm text-muted-foreground">
+                                        Don&apos;t have an account?{' '}
+                                        <TextLink href={register()}>
+                                            Sign up
+                                        </TextLink>
+                                    </div>
+                                )}
+                            </>
                         )}
-                    </>
-                )}
-            </Form>
+                    </Form>
 
-            {status && (
-                <div className="mb-4 text-center text-xs font-medium text-green-600 sm:text-sm">
-                    {status}
+                    {status && (
+                        <div className="mt-4 text-center text-sm font-medium text-green-600">
+                            {status}
+                        </div>
+                    )}
                 </div>
-            )}
-        </AuthLayout>
+            </AuthLayout>
+        </>
     );
 }

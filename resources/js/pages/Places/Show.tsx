@@ -5,7 +5,7 @@ import AppLayout from '@/layouts/app-layout';
 import { index, edit } from '@/actions/App/Http/Controllers/PlaceController';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, Pencil, MapPin, Phone, Mail, Globe, Star } from 'lucide-react';
+import { ArrowLeft, Pencil, MapPin, Phone, Mail, Globe, Star, QrCode, Download, ExternalLink } from 'lucide-react';
 
 interface TypePlace {
     id: string;
@@ -26,6 +26,7 @@ interface Place {
     website?: string;
     rating?: number;
     is_active: boolean;
+    qr_code_path?: string;
     created_at: string;
     updated_at: string;
 }
@@ -37,8 +38,21 @@ interface Props {
 export default function Show({ place }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Lieux', href: index().url },
-        { title: place.name },
+        { title: place.name, href: '' },
     ];
+
+    const visitorFormUrl = `/place/${place.id}/visitor-form`;
+
+    const handleDownloadQrCode = () => {
+        if (place.qr_code_path) {
+            const link = document.createElement('a');
+            link.href = `/storage/${place.qr_code_path}`;
+            link.download = `qrcode-${place.name}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -63,7 +77,7 @@ export default function Show({ place }: Props) {
                         <Button><Pencil className="mr-2 h-4 w-4" />Modifier</Button>
                     </Link>
                 </div>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <Card>
                         <CardHeader><CardTitle>Informations générales</CardTitle></CardHeader>
                         <CardContent className="space-y-3">
@@ -125,6 +139,54 @@ export default function Show({ place }: Props) {
                                 <div>
                                     <p className="text-sm text-muted-foreground">Coordonnées GPS</p>
                                     <p className="font-medium">{place.latitude}, {place.longitude}</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader><CardTitle className="flex items-center gap-2"><QrCode className="h-5 w-5" />QR Code Visiteur</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                            {place.qr_code_path ? (
+                                <>
+                                    <div className="flex justify-center rounded-lg border bg-white p-4">
+                                        <img
+                                            src={`/storage/${place.qr_code_path}`}
+                                            alt={`QR Code pour ${place.name}`}
+                                            className="h-48 w-48"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <p className="text-center text-sm text-muted-foreground">
+                                            Scannez ce QR code pour accéder au formulaire visiteur
+                                        </p>
+                                        <div className="flex flex-col gap-2">
+                                            <Button
+                                                variant="outline"
+                                                className="w-full"
+                                                onClick={handleDownloadQrCode}
+                                            >
+                                                <Download className="mr-2 h-4 w-4" />
+                                                Télécharger le QR Code
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full"
+                                                asChild
+                                            >
+                                                <a href={visitorFormUrl} target="_blank" rel="noopener noreferrer">
+                                                    <ExternalLink className="mr-2 h-4 w-4" />
+                                                    Ouvrir le formulaire
+                                                </a>
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="rounded-lg bg-muted p-4 text-center">
+                                    <QrCode className="mx-auto mb-2 h-12 w-12 text-muted-foreground" />
+                                    <p className="text-sm text-muted-foreground">
+                                        QR Code non disponible. Veuillez modifier le lieu pour le générer.
+                                    </p>
                                 </div>
                             )}
                         </CardContent>
