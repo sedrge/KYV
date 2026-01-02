@@ -27,3 +27,5 @@ yarn-error.log
 /.vscode
 /.zed
 ocr/venv/ 
+venv/ 
+ocr/venv/ 
