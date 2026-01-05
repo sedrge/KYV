@@ -6,21 +6,29 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import AppLayout from '@/layouts/app-layout';
-import VisitorController, { index } from '@/actions/App/Http/Controllers/VisitorController';
-import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
+import PublicLayout from '@/layouts/public-layout';
+import PlaceVisitorFormController from '@/actions/App/Http/Controllers/PlaceVisitorFormController';
+import { Head, router } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 
-import StepOne from './components/StepOne';
-import StepTwo from './components/StepTwo';
-import StepThree from './components/StepThree';
-import StepFour from './components/StepFour';
+import StepOne from '../Visitors/components/StepOne';
+import StepTwo from '../Visitors/components/StepTwo';
+import StepThree from '../Visitors/components/StepThree';
+import StepFour from '../Visitors/components/StepFour';
 
-/* =======================
-   STEPPER CONFIG
-======================= */
+interface Place {
+    id: number;
+    name: string;
+    typePlace?: {
+        name: string;
+    };
+}
+
+interface Props {
+    place: Place;
+}
+
 const steps = [
     { id: 1, label: 'Documents', description: 'Scan & infos' },
     { id: 2, label: 'Voyage', description: 'Trajet & dates' },
@@ -76,17 +84,10 @@ function Stepper({ currentStep }: { currentStep: number }) {
     );
 }
 
-/* =======================
-   PAGE
-======================= */
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Visiteurs', href: index().url },
-    { title: 'Nouveau visiteur', href: VisitorController.create().url },
-];
-
-export default function Create() {
+export default function PlaceVisitorCreate({ place }: Props) {
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState<Record<string, any>>({
+        place_id: place.id,
         phone_country_code: '+226',
         emergency_contact_country_code: '+226',
     });
@@ -117,9 +118,7 @@ export default function Create() {
             }
         });
 
-        router.post(VisitorController.store().url, formDataToSend, {
-            onSuccess: () => router.visit(index().url),
-        });
+        router.post(PlaceVisitorFormController.store(place.id).url, formDataToSend);
     };
 
     const renderStep = () => {
@@ -156,71 +155,54 @@ export default function Create() {
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Nouveau visiteur" />
+        <PublicLayout showHeader={false}>
+            <Head title={`Enregistrement visiteur - ${place.name}`} />
 
-            {/* 🌍 BACKGROUND IMMERSIF */}
-            <div className="relative min-h-screen overflow-hidden">
-                {/* 🎥 VIDEO BACKGROUND */}
-                <video
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    className="fixed inset-0 h-screen w-screen object-cover"
-                >
-                    <source src="/videos/visitor-bg1.mp4" type="video/mp4" />
-                </video>
+            <div className="w-full max-w-4xl">
+                {/* HEADER */}
+                <div className="mb-6 text-white">
+                    <div className="mb-4">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.history.back()}
+                            className="border-white/30 text-white hover:bg-white/10"
+                        >
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Retour
+                        </Button>
+                    </div>
 
-                {/* 🌈 OVERLAY */}
-                <div className="fixed inset-0 bg-gradient-to-br from-black/40 via-black/20 to-black/40" />
-
-                {/* 🌟 CONTENU */}
-                <div className="relative z-10 flex flex-col items-center px-4 py-10">
-                    <div className="w-full max-w-4xl">
-                        {/* HEADER */}
-                        <div className="mb-6 flex items-center gap-4 text-white">
-                            <Link href={index().url}>
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="border-white/30 text-white hover:bg-white/10"
-                                >
-                                    <ArrowLeft className="h-4 w-4" />
-                                </Button>
-                            </Link>
-
-                            <div>
-                                <h1 className="text-3xl font-bold">
-                                    Enregistrement du visiteur
-                                </h1>
-                                <p className="text-sm text-white/80">
-                                    Suivez les étapes pour enregistrer un nouveau visiteur
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* CARD PRINCIPALE */}
-                        <Card className="bg-background/90 backdrop-blur-xl shadow-2xl">
-                            <CardHeader className="pb-4">
-                                <Stepper currentStep={currentStep} />
-
-                                <CardTitle className="mt-4 text-lg sm:text-xl">
-                                    {steps[currentStep - 1].label}
-                                </CardTitle>
-
-                                <CardDescription>
-                                    {steps[currentStep - 1].description}
-                                </CardDescription>
-                            </CardHeader>
-
-                            <CardContent className="pt-6">
-                                {renderStep()}
-                            </CardContent>
-                        </Card>
+                    <div className="rounded-lg bg-white/10 p-4 backdrop-blur-sm">
+                        <p className="text-sm text-white/80">Enregistrement pour</p>
+                        <h1 className="text-2xl font-bold">{place.name}</h1>
+                        {place.typePlace && (
+                            <p className="text-sm text-white/70">
+                                {place.typePlace.name}
+                            </p>
+                        )}
                     </div>
                 </div>
+
+                {/* CARD PRINCIPALE */}
+                <Card className="bg-background/90 shadow-2xl backdrop-blur-xl">
+                    <CardHeader className="pb-4">
+                        <Stepper currentStep={currentStep} />
+
+                        <CardTitle className="mt-4 text-lg sm:text-xl">
+                            {steps[currentStep - 1].label}
+                        </CardTitle>
+
+                        <CardDescription>
+                            {steps[currentStep - 1].description}
+                        </CardDescription>
+                    </CardHeader>
+
+                    <CardContent className="pt-6">
+                        {renderStep()}
+                    </CardContent>
+                </Card>
             </div>
-        </AppLayout>
+        </PublicLayout>
     );
 }

@@ -12,6 +12,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TypePlaceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VisitorController;
+use App\Models\Place;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -22,8 +23,13 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('/place/{place}/visitor-form', [PlaceVisitorFormController::class, 'show'])->name('place.visitor.form');
-Route::post('/place/{place}/visitor-form', [PlaceVisitorFormController::class, 'store'])->name('place.visitor.form.store');
+Route::get('/place/{place}/visitor', [PlaceVisitorFormController::class, 'create'])->name('place.visitor.create');
+Route::post('/place/{place}/visitor', [PlaceVisitorFormController::class, 'store'])->name('place.visitor.store');
+Route::get('/place/{place}/visitor/success', function (Place $place) {
+    return Inertia::render('Public/PlaceVisitorSuccess', [
+        'place' => $place,
+    ]);
+})->name('place.visitor.success');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {

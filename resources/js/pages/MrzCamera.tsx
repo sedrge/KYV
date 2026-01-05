@@ -4,7 +4,6 @@ import MrzCameraModal from './MrzCameraModal';
 export default function TestOcrPage() {
     const [showScanner, setShowScanner] = useState(false);
 
-    // État local simple pour tester le pré-remplissage
     const [formData, setFormData] = useState({
         document_number: '',
         surname: '',
@@ -14,7 +13,6 @@ export default function TestOcrPage() {
         country: ''
     });
 
-    // Fonction de formatage YYMMDD -> YYYY-MM-DD
     const formatMrzDate = (mrzDate: string) => {
         if (!mrzDate || mrzDate.length < 6) return "";
         const year = parseInt(mrzDate.substring(0, 2));
@@ -22,11 +20,7 @@ export default function TestOcrPage() {
         return `${fullYear}-${mrzDate.substring(2, 4)}-${mrzDate.substring(4, 6)}`;
     };
 
-    // Callback appelé par le scanner enfant
     const handleOcrResult = (mrzData: any) => {
-        console.log("Données brutes reçues du scanner :", mrzData);
-
-        // On remplit l'état local avec les données du JSON Python
         setFormData({
             document_number: mrzData.document_number || '',
             surname: mrzData.surname || '',
@@ -35,90 +29,180 @@ export default function TestOcrPage() {
             sex: mrzData.sex || '',
             country: mrzData.country || ''
         });
+        setShowScanner(false);
+    };
 
-        setShowScanner(false); // On ferme le modal
-        alert("Données extraites avec succès !");
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     return (
-        <div style={{ padding: '40px', fontFamily: 'sans-serif', maxWidth: '600px', margin: '0 auto' }}>
-            <h1 style={{ color: '#333' }}>Test Pré-remplissage OCR</h1>
+        <div style={styles.page}>
+            <style>{keyframes}</style>
 
-            <button
-                onClick={() => setShowScanner(true)}
-                style={{
-                    backgroundColor: '#2563eb',
-                    color: 'white',
-                    padding: '12px 24px',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontSize: '16px',
-                    marginBottom: '30px'
-                }}
-            >
-                📷 Lancer le Scanner
-            </button>
+            <div style={styles.card}>
+                <h1 style={styles.title}>🔍 Scan OCR Intelligent</h1>
 
-            {showScanner && (
-                <MrzCameraModal onResult={handleOcrResult} />
-            )}
+                <button
+                    onClick={() => setShowScanner(true)}
+                    style={styles.scanButton}
+                >
+                    📷 Scanner le document
+                </button>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <div>
-                    <label style={{ display: 'block', fontWeight: 'bold' }}>N° Document :</label>
-                    <input
-                        type="text"
-                        value={formData.document_number}
-                        readOnly
-                        style={{ width: '100%', padding: '8px', backgroundColor: '#f3f4f6' }}
-                    />
+                {showScanner && <MrzCameraModal onResult={handleOcrResult} />}
+
+                <div style={styles.form}>
+                    {renderInput("N° Document", "document_number", formData, handleChange)}
+                    {renderInput("Nom", "surname", formData, handleChange)}
+                    {renderInput("Prénom", "name", formData, handleChange)}
+                    {renderInput("Date de naissance", "birth_date", formData, handleChange)}
+                    {renderInput("Sexe", "sex", formData, handleChange)}
                 </div>
 
-                <div>
-                    <label style={{ display: 'block', fontWeight: 'bold' }}>Nom :</label>
-                    <input
-                        type="text"
-                        value={formData.surname}
-                        readOnly
-                        style={{ width: '100%', padding: '8px', backgroundColor: '#f3f4f6' }}
-                    />
-                </div>
-
-                <div>
-                    <label style={{ display: 'block', fontWeight: 'bold' }}>Prénom :</label>
-                    <input
-                        type="text"
-                        value={formData.name}
-                        readOnly
-                        style={{ width: '100%', padding: '8px', backgroundColor: '#f3f4f6' }}
-                    />
-                </div>
-
-                <div>
-                    <label style={{ display: 'block', fontWeight: 'bold' }}>Date de naissance :</label>
-                    <input
-                        type="text"
-                        value={formData.birth_date}
-                        readOnly
-                        style={{ width: '100%', padding: '8px', backgroundColor: '#f3f4f6' }}
-                    />
-                </div>
-
-                <div>
-                    <label style={{ display: 'block', fontWeight: 'bold' }}>Sexe :</label>
-                    <input
-                        type="text"
-                        value={formData.sex}
-                        readOnly
-                        style={{ width: '100%', padding: '8px', backgroundColor: '#f3f4f6' }}
-                    />
+                {/* Texte défilant */}
+                <div style={styles.marquee}>
+                    <div style={styles.marqueeText}>
+                        ✨ Les informations sont extraites automatiquement — vous pouvez les corriger si nécessaire ✨
+                    </div>
                 </div>
             </div>
-
-            <p style={{ marginTop: '20px', fontSize: '12px', color: '#666' }}>
-                Note : Les champs sont en lecture seule pour ce test.
-            </p>
         </div>
     );
 }
+
+/* ---------- COMPONENTS ---------- */
+
+function renderInput(
+    label: string,
+    name: string,
+    formData: any,
+    handleChange: any
+) {
+    const filled = formData[name] !== "";
+
+    return (
+        <div style={{ ...styles.inputGroup, ...(filled ? styles.filled : {}) }}>
+            <label style={styles.label}>{label}</label>
+            <input
+                type="text"
+                name={name}
+                value={formData[name]}
+                onChange={handleChange}
+                style={styles.input}
+                placeholder={`Entrer ${label.toLowerCase()}`}
+            />
+        </div>
+    );
+}
+
+/* ---------- STYLES ---------- */
+
+const styles: any = {
+    page: {
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0f766e, #2563eb)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '20px',
+        fontFamily: 'Inter, sans-serif'
+    },
+
+    card: {
+        width: '100%',
+        maxWidth: '520px',
+        background: 'rgba(255,255,255,0.15)',
+        backdropFilter: 'blur(20px)',
+        borderRadius: '20px',
+        padding: '30px',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
+        animation: 'fadeIn 0.8s ease'
+    },
+
+    title: {
+        color: '#fff',
+        textAlign: 'center',
+        marginBottom: '20px'
+    },
+
+    scanButton: {
+        width: '100%',
+        padding: '14px',
+        borderRadius: '12px',
+        border: 'none',
+        fontSize: '16px',
+        fontWeight: 'bold',
+        color: '#fff',
+        cursor: 'pointer',
+        background: 'linear-gradient(90deg, #22c55e, #3b82f6)',
+        boxShadow: '0 0 20px rgba(34,197,94,0.6)',
+        animation: 'pulse 2s infinite',
+        marginBottom: '25px'
+    },
+
+    form: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '14px'
+    },
+
+    inputGroup: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px',
+        transition: 'all 0.3s ease'
+    },
+
+    filled: {
+        transform: 'scale(1.02)'
+    },
+
+    label: {
+        fontSize: '13px',
+        color: '#e5e7eb'
+    },
+
+    input: {
+        padding: '12px',
+        borderRadius: '10px',
+        border: 'none',
+        outline: 'none',
+        background: 'rgba(255,255,255,0.9)',
+        fontSize: '15px'
+    },
+
+    marquee: {
+        overflow: 'hidden',
+        marginTop: '20px',
+        borderTop: '1px solid rgba(255,255,255,0.3)',
+        paddingTop: '10px'
+    },
+
+    marqueeText: {
+        whiteSpace: 'nowrap',
+        color: '#ecfeff',
+        fontSize: '13px',
+        animation: 'marquee 12s linear infinite'
+    }
+};
+
+/* ---------- ANIMATIONS ---------- */
+
+const keyframes = `
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 15px rgba(34,197,94,0.5); }
+    50% { box-shadow: 0 0 30px rgba(59,130,246,0.9); }
+    100% { box-shadow: 0 0 15px rgba(34,197,94,0.5); }
+}
+
+@keyframes marquee {
+    from { transform: translateX(100%); }
+    to { transform: translateX(-100%); }
+}
+`;

@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import axios from 'axios';
 import { Camera, RefreshCw, Upload, Loader2 } from 'lucide-react';
-
+ 
 export default function MrzCameraModal({ onResult }: { onResult: (data: any) => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
