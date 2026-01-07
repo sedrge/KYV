@@ -14,7 +14,7 @@ class PlaceQrCodeService
 {
     public function generateQrCodeForPlace(Place $place): string
     {
-        $url = route('place.visitor.form', ['place' => $place->id]);
+        $url = route('place.visitor.create', ['place' => $place->id]);
 
         $qrCode = new QrCode(
             data: $url,
